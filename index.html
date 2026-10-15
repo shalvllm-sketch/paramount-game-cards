@@ -172,6 +172,15 @@
     return m ? m[1].toLowerCase() : "";
   }
 
+  /* Where the Watch button goes when the recipe doesn't pass a link. */
+  var DEFAULT_LINK = "https://www.paramountplus.com/";
+
+  /* Only allow real web links, so a crafted URL can't inject a javascript: link. */
+  function safeLink(url) {
+    if (!url) return "";
+    return /^https?:\/\//i.test(url) ? url : "";
+  }
+
   function el(tag, cls, text) {
     var e = document.createElement(tag);
     if (cls) e.className = cls;
@@ -191,7 +200,7 @@
       logoA: val("logo1_" + i), logoB: val("logo2_" + i),
       day: val("day_" + i), date: val("date_" + i), time: val("time_" + i),
       venue: val("venue_" + i), network: val("network_" + i), score: val("score_" + i),
-      link: val("link_" + i) || val("link")
+      link: safeLink(val("link_" + i)) || safeLink(val("link")) || DEFAULT_LINK
     };
     if (g.away || g.home) games.push(g);
   }
@@ -247,14 +256,11 @@
 
     if (g.venue) card.appendChild(el("div", "venue", g.venue));
 
-    var label = g.network ? "Watch on " + g.network : "Watch now";
-    if (g.link) {
-      var a = el("a", "cta", label);
-      a.href = g.link; a.target = "_blank"; a.rel = "noopener";
-      card.appendChild(a);
-    } else {
-      card.appendChild(el("button", "cta", label));
-    }
+    var a = el("a", "cta", g.network ? "Watch on " + g.network : "Watch now");
+    a.href = g.link;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    card.appendChild(a);
 
     track.appendChild(card);
   });
