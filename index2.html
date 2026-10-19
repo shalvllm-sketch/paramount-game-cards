@@ -3,304 +3,153 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DraftKings x Jackpocket Lottery</title>
+<title>Jackpocket Live Sports Carousel</title>
 <style>
   /*
-   * Chatbot Parameter Reference (supports old & new keys interchangeably):
-   *   Global parameters:
-   *     cards            Number of cards: 1-3 (default 1)
-   *     dk_logo          Optional custom DraftKings logo image URL (falls back to inline SVG)
-   *     jp_logo          Optional custom Jackpocket logo image URL (falls back to inline SVG)
-   *
-   *   Per card (i = 1, 2, or 3):
-   *     game_i           Lottery game name (Fallback: team1_i) e.g., "Powerball"
-   *     jackpot_i        Jackpot display value (Fallback: score_i, score1_i) e.g., "$520 MILLION"
-   *     cash_i           Cash payout option (Fallback: score2_i) e.g., "Est. Cash: $245.6M"
-   *     logo_i           Game logo image URL (Fallback: logo1_i)
-   *     day_i            e.g., "Wednesday"
-   *     date_i           e.g., "Oct 21"
-   *     time_i           e.g., "10:59 PM ET"
-   *     status_i         Chip text (default: "DRAWING TONIGHT")
-   *     price_i          Ticket price (Fallback: venue_i) e.g., "$2 / play"
-   *     badge_i          Subtitle tag (Fallback: network_i) e.g., "Official Courier"
-   *     cta_i            Button text (default: "Order on Jackpocket")
-   *     link_i           Target URL (Fallback: url_i, watchUrl_i; default: https://jackpocket.com)
+   * Query parameters (per card i, 1-based, up to `cards`):
+   *   cards       1-3, how many cards to render (default 1)
+   *   team1_i     AWAY team name   (shown left)
+   *   team2_i     HOME team name   (shown right)
+   *   logo1_i     away logo URL    (falls back to initials)
+   *   logo2_i     home logo URL
+   *   day_i       e.g. Sunday
+   *   date_i      e.g. October 18, 2026
+   *   time_i      e.g. 1:00 PM ET
+   *   venue_i     optional; row hidden when empty
+   *   network_i   optional; row hidden when empty
+   *   score_i     optional record/score under both teams
+   *   score1_i    optional, away only
+   *   score2_i    optional, home only
+   *   status_i    UPCOMING | LIVE NOW | FINAL  (default UPCOMING)
+   *   link_i      CTA target (default https://www.jackpocket.com)
    */
-
   * { box-sizing: border-box; }
   html, body {
     margin: 0; padding: 0; width: 100%; max-width: 100%;
     overflow-x: hidden;
     background: transparent;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    color: #ffffff;
   }
   #carousel-root { width: 100%; }
-
-  @keyframes pulseGreen {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(83, 211, 55, 0.65); }
+  
+  @keyframes shimmer {
+    0%   { transform: translateX(-60%) rotate(8deg); }
+    100% { transform: translateX(160%) rotate(8deg); }
+  }
+  @keyframes pulseDot {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(83, 211, 55, 0.55); }
     50%      { box-shadow: 0 0 0 5px rgba(83, 211, 55, 0); }
   }
-  @keyframes dkGlow {
-    0%, 100% { box-shadow: 0 4px 16px rgba(83, 211, 55, 0.35); }
-    50%      { box-shadow: 0 4px 24px rgba(83, 211, 55, 0.65); }
+  @keyframes ctaGlow {
+    0%, 100% { box-shadow: 0 4px 14px rgba(83, 211, 55, 0.35); }
+    50%      { box-shadow: 0 4px 22px rgba(83, 211, 55, 0.65); }
   }
-
+  
   .pure-carousel { position: relative; width: 100%; max-width: 100%; margin: 0 auto; }
   .radio-nav { display: none; }
   .viewport { overflow: hidden; border-radius: 16px; max-width: 100%; }
   .track { display: flex; transition: transform 0.45s cubic-bezier(.22, .68, 0, 1); }
   .slide { padding: 0; height: 100%; }
-
-  /* DraftKings Dark Theme Card */
-  .lottery-card {
+  
+  /* DraftKings / Jackpocket Dark Theme */
+  .match-card {
     background: #11151a;
-    border: 1px solid #232c38;
+    border: 1px solid #232a34;
     border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
     display: flex;
     flex-direction: column;
+    color: #ffffff;
   }
-
-  /* Co-Branded Header */
   .card-header {
-    background: linear-gradient(165deg, #182029 0%, #11161d 60%, #0d1015 100%);
-    padding: 14px 16px;
+    position: relative; overflow: hidden;
+    background: linear-gradient(135deg, #182029 0%, #11161d 45%, #0a0d11 100%);
+    padding: 12px 14px 18px;
     border-bottom: 1px solid #222b37;
-    position: relative;
   }
-  .header-top-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
+  .card-header::before {
+    content: ''; position: absolute; top: -50%; left: 0; width: 40%; height: 200%;
+    background: linear-gradient(100deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0) 100%);
+    animation: shimmer 3.2s ease-in-out infinite; animation-delay: 1s; pointer-events: none;
   }
-
-  /* Dual Logo Display: DraftKings x Jackpocket */
-  .brand-lockup {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    min-width: 0;
-  }
-  .brand-logo-img {
-    height: 18px;
-    max-width: 90px;
-    object-fit: contain;
-  }
-  .dk-logo-svg {
-    height: 19px;
-    width: auto;
-    display: block;
-  }
-  .jp-logo-svg {
-    height: 18px;
-    width: auto;
-    display: block;
-  }
-  .brand-divider {
-    color: #435266;
-    font-size: 0.8rem;
-    font-weight: 300;
-  }
-
-  /* Status badge */
+  
+  .header-top-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; position: relative; z-index: 1; }
+  .header-top-row > * { min-width: 0; }
+  
+  /* Brand Logo Fetch styling */
+  .brand-tag { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 8px; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.5px; min-width: 0; color: #00d2b4; }
+  .brand-tag img { width: auto; height: 18px; max-width: 100px; flex: 0 0 auto; object-fit: contain; }
+  .brand-tag .date { font-weight: 500; color: rgba(255, 255, 255, 0.65); letter-spacing: normal; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  
   .status-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    background: rgba(83, 211, 55, 0.12);
-    border: 1px solid rgba(83, 211, 55, 0.35);
-    border-radius: 20px;
-    padding: 3px 9px;
-    font-size: 0.65rem;
-    font-weight: 800;
-    letter-spacing: 0.5px;
-    color: #53d337;
-    white-space: nowrap;
-    text-transform: uppercase;
+    display: flex; align-items: center; gap: 5px;
+    background: rgba(83, 211, 55, 0.12); border: 1px solid rgba(83, 211, 55, 0.25);
+    border-radius: 20px; padding: 4px 10px; font-size: 0.68rem; font-weight: 700; white-space: nowrap; flex: 0 0 auto; color: #53d337; text-transform: uppercase;
   }
-  .status-chip .dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: #53d337;
-    animation: pulseGreen 1.6s infinite;
+  .status-chip .dot { width: 6px; height: 6px; border-radius: 50%; background: #53d337; animation: pulseDot 1.6s infinite; }
+  
+  .matchup { position: relative; z-index: 1; display: flex; align-items: flex-start; justify-content: space-between; gap: 6px; margin-top: 18px; }
+  .team-block { flex: 1; text-align: center; min-width: 0; }
+  
+  .team-logo-ring {
+    width: clamp(44px, 16vw, 64px); height: clamp(44px, 16vw, 64px);
+    margin: 0 auto 9px; border-radius: 50%;
+    background: #1c232d; display: flex; align-items: center; justify-content: center;
+    padding: clamp(6px, 1.5vw, 9px); border: 1px solid #2e3a4a;
   }
-
-  /* Main Jackpot Content */
-  .jackpot-hero {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    margin-top: 14px;
+  .team-block.away .team-logo-ring { box-shadow: 0 0 0 2px rgba(0, 210, 180, 0.5), 0 0 12px 2px rgba(0, 210, 180, 0.2); }
+  .team-block.home .team-logo-ring { box-shadow: 0 0 0 2px rgba(83, 211, 55, 0.5), 0 0 12px 2px rgba(83, 211, 55, 0.2); }
+  .team-logo-ring img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  .team-logo-ring.initials { font-weight: 800; font-size: 1.3rem; color: #8da0b5; }
+  
+  .team-name { font-size: clamp(0.72rem, 2.3vw, 0.84rem); font-weight: 700; line-height: 1.15; overflow-wrap: break-word; hyphens: auto; color: #ffffff; }
+  .team-side { font-size: 0.66rem; color: #8da0b5; margin-top: 3px; letter-spacing: 0.4px; font-weight: 600; }
+  .team-record { font-size: 0.72rem; color: rgba(255, 255, 255, 0.5); margin-top: 2px; }
+  
+  .vs-badge {
+    flex: 0 0 auto; align-self: center; margin-top: 18px;
+    background: #1c232d; color: #8da0b5; border: 1px solid #2e3a4a;
+    font-weight: 800; font-style: italic; font-size: 0.72rem; letter-spacing: 0.5px;
+    padding: 4px 9px; border-radius: 999px;
   }
-  .game-ball {
-    width: clamp(50px, 14vw, 62px);
-    height: clamp(50px, 14vw, 62px);
-    flex-shrink: 0;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 900;
-    font-size: 1.1rem;
-    letter-spacing: -0.5px;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.4);
-    background: radial-gradient(circle at 35% 35%, #ff3b30 0%, #b30000 70%, #700000 100%);
-    color: #ffffff;
-    overflow: hidden;
+  
+  .card-body { padding: 14px 16px 16px; background: #11151a; }
+  .info-row { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: #c5d1de; padding: 3px 0; }
+  .info-row .icon { flex: 0 0 auto; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; }
+  .info-row .icon svg { width: 16px; height: 16px; stroke: #8da0b5; }
+  
+  .network-badge {
+    display: inline-flex; align-items: center; gap: 6px; background-color: #1c232d; color: #00d2b4;
+    font-weight: bold; font-size: 0.7rem; letter-spacing: 0.5px; padding: 2px 9px; border-radius: 4px; border: 1px solid #2e3a4a;
   }
-  .game-ball.megamillions {
-    background: radial-gradient(circle at 35% 35%, #ffd400 0%, #d48200 75%, #8a4e00 100%);
-    color: #120e00;
-  }
-  .game-ball.cash4life {
-    background: radial-gradient(circle at 35% 35%, #00e575 0%, #00994d 70%, #00592c 100%);
-    color: #ffffff;
-  }
-  .game-ball img {
-    width: 80%;
-    height: 80%;
-    object-fit: contain;
-  }
-
-  .jackpot-details {
-    flex: 1;
-    min-width: 0;
-  }
-  .game-name {
-    font-size: 0.76rem;
-    font-weight: 800;
-    letter-spacing: 0.6px;
-    color: #8da0b5;
-    text-transform: uppercase;
-  }
-  .jackpot-amount {
-    font-size: clamp(1.35rem, 5.5vw, 1.75rem);
-    font-weight: 900;
-    line-height: 1.1;
-    letter-spacing: -0.5px;
-    color: #ffd700;
-    text-shadow: 0 2px 10px rgba(255, 215, 0, 0.28);
-    margin: 2px 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .jackpot-cash {
-    font-size: 0.72rem;
-    color: #94a3b8;
-    font-weight: 500;
-  }
-
-  /* Card Body & Info */
-  .card-body {
-    padding: 12px 16px 14px;
-    background: #11151a;
-  }
-  .meta-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    margin-bottom: 12px;
-  }
-  .info-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.78rem;
-    color: #c5d1de;
-  }
-  .info-row .icon {
-    width: 16px;
-    height: 16px;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .badge-courier {
-    background: #1c2530;
-    border: 1px solid #2d3c4f;
-    border-radius: 4px;
-    padding: 1px 7px;
-    font-size: 0.68rem;
-    font-weight: 700;
-    color: #00d2b4;
-  }
-
-  /* Primary CTA Button */
+  
+  /* Vibrant DraftKings Green CTA */
   .cta-btn {
-    width: 100%;
-    border: none;
-    border-radius: 10px;
-    padding: 11px 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    font-size: 0.88rem;
-    font-weight: 800;
-    letter-spacing: 0.4px;
-    color: #061403;
-    text-transform: uppercase;
-    text-decoration: none;
-    cursor: pointer;
-    background: linear-gradient(135deg, #53d337 0%, #43be2a 100%);
-    animation: dkGlow 2.6s ease-in-out infinite;
-    transition: filter 0.15s ease;
+    margin-top: 10px; width: 100%; border: none; border-radius: 10px; padding: 11px 10px;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    font-size: 0.9rem; font-weight: 800; color: #081504; letter-spacing: 0.3px;
+    text-transform: uppercase; cursor: pointer; text-decoration: none;
+    background: linear-gradient(135deg, #53d337, #44b62d);
+    animation: ctaGlow 2.4s ease-in-out infinite;
   }
-  .cta-btn:hover {
-    filter: brightness(1.1);
-  }
-  .cta-btn svg { width: 15px; height: 15px; fill: #061403; }
-
-  .disclaimer {
-    text-align: center;
-    margin-top: 8px;
-    font-size: 0.62rem;
-    line-height: 1.3;
-    color: #616e7f;
-  }
-
-  /* Navigation Controls */
-  .nav-bar {
-    flex: 0 0 auto;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-    padding: 10px 0 4px;
-  }
+  .cta-btn svg { width: 15px; height: 15px; fill: #081504; }
+  
+  .powered-by { text-align: center; margin-top: 8px; font-size: 0.66rem; color: #616e7f; }
+  .powered-by b { color: #00d2b4; }
+  
+  .nav-bar { flex: 0 0 auto; display: flex; align-items: center; justify-content: center; gap: 16px; padding: 10px 0 4px; }
   .arrow-slot { width: 32px; height: 32px; }
   .nav-btn {
-    display: none;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: #19202a;
-    border: 1px solid #283444;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
+    display: none; width: 32px; height: 32px; border-radius: 50%; background: #19202a;
+    border: 1px solid #283444; align-items: center; justify-content: center; cursor: pointer;
   }
-  .nav-btn:hover { background: #232c3a; }
-  .nav-btn svg { width: 16px; height: 16px; stroke: #53d337; }
-
+  .nav-btn svg { width: 15px; height: 15px; stroke: #53d337; }
   .dots { display: flex; align-items: center; gap: 6px; }
-  .dot {
-    display: block;
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: #2b3644;
-    cursor: pointer;
-  }
-
+  .dot { display: block; width: 7px; height: 7px; border-radius: 50%; background: #2b3644; cursor: pointer; }
+  
   @media (prefers-reduced-motion: reduce) {
-    .status-chip .dot, .cta-btn { animation: none; }
+    .card-header::before, .status-chip .dot, .cta-btn { animation: none; }
     .track { transition: none; }
   }
 </style>
@@ -315,13 +164,9 @@
 
   var params = new URLSearchParams(window.location.search);
 
-  /* Fallback-chain resolver: checks multiple keys for safety with chatbots */
-  function getParam(keys, fallback) {
-    for (var i = 0; i < keys.length; i++) {
-      var v = params.get(keys[i]);
-      if (v !== null && v.trim() !== '') return v.trim();
-    }
-    return fallback;
+  function qs(name, fallback) {
+    var v = params.get(name);
+    return (v === null || v.trim() === '') ? fallback : v.trim();
   }
 
   function escapeHtml(value) {
@@ -334,78 +179,67 @@
     return (url && /^https?:\/\//i.test(url)) ? url : '';
   }
 
-  /* Official SVGs for DraftKings & Jackpocket to prevent external 404s/CORS */
-  var LOGOS = {
-    draftkings: '<svg class="dk-logo-svg" viewBox="0 0 148 20" fill="none"><path d="M4.5 1.5L9.5 8L15 2L13.5 13H0L2 6L4.5 1.5Z" fill="#53D337"/><path d="M0 16.5H15V18.5H0V16.5Z" fill="#53D337"/><text x="21" y="15" fill="#FFFFFF" font-family="-apple-system, sans-serif" font-weight="900" font-size="13" letter-spacing="1">DRAFTKINGS</text></svg>',
-    jackpocket: '<svg class="jp-logo-svg" viewBox="0 0 115 20" fill="none"><rect x="1" y="2" width="16" height="16" rx="4" fill="#00D2B4"/><path d="M10 6V11C10 12.5 8.8 13.5 7.2 13.2C6 13 5.3 12 5.3 12" stroke="#11151A" stroke-width="2" stroke-linecap="round"/><text x="23" y="15" fill="#00D2B4" font-family="-apple-system, sans-serif" font-weight="800" font-size="13" letter-spacing="0.5">JACKPOCKET</text></svg>'
-  };
+  /* Exactly like your original NFL_LOGO_URL setup, just pointing to Jackpocket now */
+  var JACKPOCKET_LOGO_URL = 'https://play-lh.googleusercontent.com/yv9VjRjYQ0D82aN6bFv_dY-zXQx9Lz6L8bA8e3rT7-61E6y-4_8=s128-rw';
+  var DEFAULT_LINK = 'https://www.jackpocket.com';
 
   var ICONS = {
-    clock: '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#7e8d9f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>',
-    ticket: '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#7e8d9f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"></path></svg>',
-    bolt: '<svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>',
+    location: '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>',
+    tv: '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>',
+    play: '<svg viewBox="0 0 24 24" fill="#fff"><polygon points="6 4 20 12 6 20"></polygon></svg>',
     chevronLeft: '<svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>',
     chevronRight: '<svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>'
   };
 
-  /* Default sample games if chatbot sends partial or no details */
-  var DEFAULT_GAMES = [
-    { name: 'Powerball', jackpot: '$435 MILLION', cash: 'Est. Cash: $204.8M', initials: 'PB', when: 'Wed, Oct 21 &middot; 10:59 PM ET' },
-    { name: 'Mega Millions', jackpot: '$620 MILLION', cash: 'Est. Cash: $291.5M', initials: 'MM', when: 'Fri, Oct 23 &middot; 11:00 PM ET' },
-    { name: 'Cash4Life', jackpot: '$1,000 / DAY', cash: 'Top Prize For Life', initials: 'C4L', when: 'Daily &middot; 9:00 PM ET' }
-  ];
+  function teamLogoHTML(team) {
+    if (team.logo) {
+      return '<img src="' + escapeHtml(team.logo) + '" alt="' + escapeHtml(team.name) + ' logo">';
+    }
+    var source = team.name || '';
+    return escapeHtml(String(source).slice(0, 2).toUpperCase());
+  }
 
-  /* Resolve Header Logos (Query params allow chatbot to supply image URLs if desired) */
-  var customDkLogo = safeLink(getParam(['dk_logo', 'draftkings_logo', 'logo_dk'], ''));
-  var customJpLogo = safeLink(getParam(['jp_logo', 'jackpocket_logo', 'logo_jp'], ''));
-
-  var dkLogoHTML = customDkLogo ? '<img src="' + escapeHtml(customDkLogo) + '" class="brand-logo-img" alt="DraftKings">' : LOGOS.draftkings;
-  var jpLogoHTML = customJpLogo ? '<img src="' + escapeHtml(customJpLogo) + '" class="brand-logo-img" alt="Jackpocket">' : LOGOS.jackpocket;
-
-  function getBallClass(name) {
-    var lower = String(name || '').toLowerCase();
-    if (lower.indexOf('mega') !== -1) return 'megamillions';
-    if (lower.indexOf('cash') !== -1 || lower.indexOf('life') !== -1) return 'cash4life';
-    return '';
+  function teamBlockHTML(team, side, label) {
+    return '<div class="team-block ' + side + '">' +
+      '<div class="team-logo-ring' + (team.logo ? '' : ' initials') + '">' + teamLogoHTML(team) + '</div>' +
+      '<div class="team-name">' + escapeHtml(team.name || 'TBD') + '</div>' +
+      '<div class="team-side">' + label + '</div>' +
+      (team.record ? '<div class="team-record">' + escapeHtml(team.record) + '</div>' : '') +
+      '</div>';
   }
 
   function slideHTML(game) {
-    var ballContent = game.logo
-      ? '<img src="' + escapeHtml(game.logo) + '" alt="' + escapeHtml(game.name) + '">'
-      : escapeHtml(game.initials);
+    var rows = '';
+    if (game.venue) {
+      rows += '<div class="info-row"><span class="icon">' + ICONS.location + '</span>' +
+              '<span>' + escapeHtml(game.venue) + '</span></div>';
+    }
+    if (game.broadcaster) {
+      rows += '<div class="info-row"><span class="icon">' + ICONS.tv + '</span>' +
+              '<span>Watch on</span><span class="network-badge">' + escapeHtml(game.broadcaster) + '</span></div>';
+    }
 
-    return '<div class="slide"><div class="lottery-card">' +
+    return '<div class="slide"><div class="match-card">' +
       '<div class="card-header">' +
         '<div class="header-top-row">' +
-          '<div class="brand-lockup">' +
-            dkLogoHTML +
-            '<span class="brand-divider">/</span>' +
-            jpLogoHTML +
+          '<div class="brand-tag">' +
+            '<img src="' + JACKPOCKET_LOGO_URL + '" alt="Jackpocket logo">' +
+            '<span>SPORTS</span>' +
+            (game.when ? '<span class="date">&middot; ' + escapeHtml(game.when) + '</span>' : '') +
           '</div>' +
           '<div class="status-chip"><span class="dot"></span><span>' + escapeHtml(game.status) + '</span></div>' +
         '</div>' +
-        '<div class="jackpot-hero">' +
-          '<div class="game-ball ' + escapeHtml(game.ballClass) + '">' + ballContent + '</div>' +
-          '<div class="jackpot-details">' +
-            '<div class="game-name">' + escapeHtml(game.name) + '</div>' +
-            '<div class="jackpot-amount">' + escapeHtml(game.jackpot) + '</div>' +
-            (game.cash ? '<div class="jackpot-cash">' + escapeHtml(game.cash) + '</div>' : '') +
-          '</div>' +
+        '<div class="matchup">' +
+          teamBlockHTML(game.away, 'away', 'AWAY') +
+          '<div class="vs-badge">VS</div>' +
+          teamBlockHTML(game.home, 'home', 'HOME') +
         '</div>' +
       '</div>' +
-      '<div class="card-body">' +
-        '<div class="meta-grid">' +
-          (game.when ? '<div class="info-row"><span class="icon">' + ICONS.clock + '</span><span>' + game.when + '</span></div>' : '') +
-          '<div class="info-row"><span class="icon">' + ICONS.ticket + '</span><span>' + escapeHtml(game.price) + '</span>' +
-          (game.badge ? '&nbsp;&middot;&nbsp;<span class="badge-courier">' + escapeHtml(game.badge) + '</span>' : '') + '</div>' +
-        '</div>' +
-        '<a class="cta-btn" href="' + escapeHtml(game.playUrl) + '" target="_blank" rel="noopener noreferrer">' +
-          ICONS.bolt + ' ' + escapeHtml(game.ctaText) +
+      '<div class="card-body">' + rows +
+        '<a class="cta-btn" href="' + escapeHtml(game.watchUrl) + '" target="_blank" rel="noopener noreferrer">' +
+          ICONS.play + ' Watch on Jackpocket' +
         '</a>' +
-        '<div class="disclaimer">' +
-          'Official Digital Lottery Courier. Must be 18+ (21+ AZ, 19+ NE).<br>' +
-          'Gambling Problem? Call 1-800-GAMBLER.' +
-        '</div>' +
+        '<div class="powered-by">Streaming live only on <b>Jackpocket</b></div>' +
       '</div>' +
     '</div></div>';
   }
@@ -421,7 +255,7 @@
         css += '#g' + (j + 2) + ':checked ~ .nav-bar .to-g' + (j + 1) + '.prev-btn { display: flex; } ';
       }
       for (var k = 0; k < n; k++) {
-        css += '#g' + (k + 1) + ':checked ~ .nav-bar .dots label[for="g' + (k + 1) + '"] { width: 18px; border-radius: 4px; background: #53d337; } ';
+        css += '#g' + (k + 1) + ':checked ~ .nav-bar .dots label[for="g' + (k + 1) + '"] { width: 20px; border-radius: 4px; background: #53d337; } ';
       }
     }
     return css;
@@ -439,11 +273,11 @@
     if (n <= 1) return '';
     var prevLabels = '', nextLabels = '', dots = '';
     for (var i = 0; i < n - 1; i++) {
-      prevLabels += '<label for="g' + (i + 1) + '" class="nav-btn prev-btn to-g' + (i + 1) + '" aria-label="Previous jackpot">' + ICONS.chevronLeft + '</label>';
-      nextLabels += '<label for="g' + (i + 2) + '" class="nav-btn next-btn to-g' + (i + 2) + '" aria-label="Next jackpot">' + ICONS.chevronRight + '</label>';
+      prevLabels += '<label for="g' + (i + 1) + '" class="nav-btn prev-btn to-g' + (i + 1) + '" aria-label="Previous game">' + ICONS.chevronLeft + '</label>';
+      nextLabels += '<label for="g' + (i + 2) + '" class="nav-btn next-btn to-g' + (i + 2) + '" aria-label="Next game">' + ICONS.chevronRight + '</label>';
     }
     for (var k = 0; k < n; k++) {
-      dots += '<label for="g' + (k + 1) + '" class="dot" aria-label="Jackpot slide ' + (k + 1) + '"></label>';
+      dots += '<label for="g' + (k + 1) + '" class="dot" aria-label="Go to game ' + (k + 1) + '"></label>';
     }
     return '<div class="nav-bar">' +
       '<div class="arrow-slot">' + prevLabels + '</div>' +
@@ -452,44 +286,26 @@
       '</div>';
   }
 
-  /* Parse cards count (1 to 3) */
-  var cardsCount = Math.min(3, Math.max(1, parseInt(getParam(['cards'], '1'), 10) || 1));
+  /* ---- Read the exact same original parameters from the query string ---- */
+  var cardsCount = Math.min(3, Math.max(1, parseInt(qs('cards', '1'), 10) || 1));
 
   var games = [];
   for (var i = 1; i <= cardsCount; i++) {
-    var fallback = DEFAULT_GAMES[(i - 1) % DEFAULT_GAMES.length];
-
-    /* Resilient alias cascade */
-    var name = getParam(['game_' + i, 'name_' + i, 'title_' + i, 'team1_' + i], fallback.name);
-    var jackpot = getParam(['jackpot_' + i, 'amount_' + i, 'prize_' + i, 'score_' + i, 'score1_' + i], fallback.jackpot);
-    var cash = getParam(['cash_' + i, 'cash_value_' + i, 'score2_' + i], fallback.cash);
-    var logo = safeLink(getParam(['logo_' + i, 'logo1_' + i], ''));
-
-    var whenParts = [
-      getParam(['day_' + i], ''),
-      getParam(['date_' + i], ''),
-      getParam(['time_' + i], '')
-    ].filter(Boolean);
-
-    var when = whenParts.length > 0 ? whenParts.join(', ') : fallback.when;
+    var sharedScore = qs('score_' + i, '');
+    var when = [qs('day_' + i, ''), qs('date_' + i, ''), qs('time_' + i, '')]
+      .filter(Boolean).join(', ');
 
     games.push({
-      name: name,
-      jackpot: jackpot,
-      cash: cash,
-      logo: logo,
-      ballClass: getBallClass(name),
-      initials: (name || 'LOTTO').slice(0, 3).toUpperCase(),
       when: when,
-      status: getParam(['status_' + i], 'DRAWING TONIGHT'),
-      price: getParam(['price_' + i, 'venue_' + i], '$2.00 per ticket'),
-      badge: getParam(['badge_' + i, 'network_' + i], 'Official Courier'),
-      ctaText: getParam(['cta_' + i, 'cta_text_' + i], 'Order on Jackpocket'),
-      playUrl: safeLink(getParam(['link_' + i, 'url_' + i, 'watchUrl_' + i], '')) || 'https://jackpocket.com'
+      status: qs('status_' + i, 'UPCOMING'),
+      venue: qs('venue_' + i, ''),
+      broadcaster: qs('network_' + i, ''),
+      watchUrl: safeLink(qs('link_' + i, '')) || safeLink(qs('watchUrl_' + i, '')) || DEFAULT_LINK,
+      away: { name: qs('team1_' + i, 'TBD'), record: qs('score1_' + i, sharedScore), logo: qs('logo1_' + i, null) },
+      home: { name: qs('team2_' + i, 'TBD'), record: qs('score2_' + i, sharedScore), logo: qs('logo2_' + i, null) }
     });
   }
 
-  /* Inject CSS and Render */
   var styleTag = document.createElement('style');
   styleTag.textContent = buildDynamicCSS(cardsCount);
   document.head.appendChild(styleTag);
