@@ -28,9 +28,10 @@
   * { box-sizing: border-box; }
   html, body {
     margin: 0; padding: 0; width: 100%; max-width: 100%; overflow-x: hidden;
-    background-color: #eef1f6;
+    background: transparent;
     font-family: Arial, 'Segoe UI', Roboto, Helvetica, sans-serif;
   }
+  #carousel-root { width: 100%; }
   @keyframes shimmer {
     0%   { transform: translateX(-60%) rotate(8deg); }
     100% { transform: translateX(160%) rotate(8deg); }
@@ -43,9 +44,9 @@
     0%, 100% { box-shadow: 0 4px 14px rgba(0, 100, 255, 0.45); }
     50%      { box-shadow: 0 4px 22px rgba(0, 100, 255, 0.75); }
   }
-  .pure-carousel { position: relative; width: 100%; max-width: min(var(--carousel-max-width, 380px), 100%); margin: 0 auto; }
+  .pure-carousel { position: relative; width: 100%; max-width: 100%; margin: 0 auto; }
   .radio-nav { display: none; }
-  .viewport { overflow: hidden; border-radius: 16px; }
+  .viewport { overflow: hidden; border-radius: 16px; max-width: 100%; }
   .track { display: flex; transition: transform 0.45s cubic-bezier(.22, .68, 0, 1); }
   .slide { padding: 4px; }
   .match-card { background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 6px 20px rgba(0, 20, 60, 0.18); }
@@ -59,10 +60,11 @@
     background: linear-gradient(100deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.16) 50%, rgba(255,255,255,0) 100%);
     animation: shimmer 3.2s ease-in-out infinite; animation-delay: 1s; pointer-events: none;
   }
-  .header-top-row { display: flex; align-items: center; justify-content: space-between; position: relative; z-index: 1; }
+  .header-top-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; position: relative; z-index: 1; }
+  .header-top-row > * { min-width: 0; }
   .league-tag { display: flex; align-items: center; gap: 6px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.5px; min-width: 0; }
   .league-tag img { width: 18px; height: 18px; flex: 0 0 auto; }
-  .league-tag .date { font-weight: 400; color: rgba(255, 255, 255, 0.75); letter-spacing: normal; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .league-tag .date { font-weight: 400; color: rgba(255, 255, 255, 0.75); letter-spacing: normal; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
   .status-chip {
     display: flex; align-items: center; gap: 5px;
     background: rgba(255, 255, 255, 0.14); border: 1px solid rgba(255, 255, 255, 0.25);
@@ -264,13 +266,9 @@
   /* ---- read the cards out of the query string ---- */
   var cardsCount = Math.min(3, Math.max(1, parseInt(qs('cards', '1'), 10) || 1));
 
-  /* width may arrive as "320" or "320px" */
-  var widthParam = qs('width', null);
-  if (widthParam) {
-    var w = String(widthParam).replace(/[^0-9]/g, '');
-    if (w) document.documentElement.style.setProperty('--carousel-max-width', w + 'px');
-  }
-  /* `height` is accepted but ignored: the page sizes to its own content. */
+  /* width and height params are ignored on purpose: the card fills the
+     frame the chat gives it. Honouring width=320 left grey margins when
+     the frame was wider, and clipped the card when it was narrower. */
 
   var games = [];
   for (var i = 1; i <= cardsCount; i++) {
