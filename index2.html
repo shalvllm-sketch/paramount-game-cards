@@ -3,151 +3,124 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jackpocket Live Sports Carousel</title>
+<title>Jackpocket Sports Carousel</title>
 <style>
   /*
    * Query parameters (per card i, 1-based, up to `cards`):
-   *   cards       1-3, how many cards to render (default 1)
-   *   team1_i     AWAY team name   (shown left)
-   *   team2_i     HOME team name   (shown right)
-   *   logo1_i     away logo URL    (falls back to initials)
-   *   logo2_i     home logo URL
-   *   day_i       e.g. Sunday
-   *   date_i      e.g. October 18, 2026
-   *   time_i      e.g. 1:00 PM ET
-   *   venue_i     optional; row hidden when empty
-   *   network_i   optional; row hidden when empty
-   *   score_i     optional record/score under both teams
-   *   score1_i    optional, away only
-   *   score2_i    optional, home only
-   *   status_i    UPCOMING | LIVE NOW | FINAL  (default UPCOMING)
-   *   link_i      CTA target (default https://www.jackpocket.com)
+   *    cards        1-3, how many cards to render (default 1)
+   *    width        max width in px (accepts 320 or 320px)
+   *    height       accepted and ignored; the page sizes to its content
+   *    team1_i      AWAY team name   (shown left)
+   *    team2_i      HOME team name   (shown right)
+   *    logo1_i      away logo URL    (falls back to initials)
+   *    logo2_i      home logo URL
+   *    day_i        e.g. Sunday
+   *    date_i       e.g. October 18, 2026
+   *    time_i       e.g. 1:00 PM ET
+   *    venue_i      optional; row hidden when empty
+   *    network_i    optional; row hidden when empty
+   *    score_i      optional record/score under both teams
+   *    score1_i     optional, away only
+   *    score2_i     optional, home only
+   *    status_i     UPCOMING | LIVE NOW | FINAL  (default UPCOMING)
+   *    link_i       CTA target (default https://www.paramountplus.com)
    */
   * { box-sizing: border-box; }
   html, body {
     margin: 0; padding: 0; width: 100%; max-width: 100%;
     overflow-x: hidden;
     background: transparent;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-family: Arial, 'Segoe UI', Roboto, Helvetica, sans-serif;
   }
   #carousel-root { width: 100%; }
-  
   @keyframes shimmer {
     0%   { transform: translateX(-60%) rotate(8deg); }
     100% { transform: translateX(160%) rotate(8deg); }
   }
   @keyframes pulseDot {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(83, 211, 55, 0.55); }
-    50%      { box-shadow: 0 0 0 5px rgba(83, 211, 55, 0); }
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.55); }
+    50%      { box-shadow: 0 0 0 5px rgba(255, 59, 48, 0); }
   }
   @keyframes ctaGlow {
-    0%, 100% { box-shadow: 0 4px 14px rgba(83, 211, 55, 0.35); }
-    50%      { box-shadow: 0 4px 22px rgba(83, 211, 55, 0.65); }
+    0%, 100% { box-shadow: 0 4px 14px rgba(0, 100, 255, 0.45); }
+    50%      { box-shadow: 0 4px 22px rgba(0, 100, 255, 0.75); }
   }
-  
   .pure-carousel { position: relative; width: 100%; max-width: 100%; margin: 0 auto; }
   .radio-nav { display: none; }
   .viewport { overflow: hidden; border-radius: 16px; max-width: 100%; }
   .track { display: flex; transition: transform 0.45s cubic-bezier(.22, .68, 0, 1); }
   .slide { padding: 0; height: 100%; }
-  
-  /* DraftKings / Jackpocket Dark Theme */
-  .match-card {
-    background: #11151a;
-    border: 1px solid #232a34;
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-    display: flex;
-    flex-direction: column;
-    color: #ffffff;
-  }
+  .match-card { background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 6px 20px rgba(0, 20, 60, 0.18); display: flex; flex-direction: column; }
   .card-header {
     position: relative; overflow: hidden;
-    background: linear-gradient(135deg, #182029 0%, #11161d 45%, #0a0d11 100%);
-    padding: 12px 14px 18px;
-    border-bottom: 1px solid #222b37;
+    background: linear-gradient(135deg, #001233 0%, #002f6c 45%, #0064ff 100%);
+    padding: 12px 14px 18px; color: #ffffff;
   }
   .card-header::before {
     content: ''; position: absolute; top: -50%; left: 0; width: 40%; height: 200%;
-    background: linear-gradient(100deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0) 100%);
+    background: linear-gradient(100deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.16) 50%, rgba(255,255,255,0) 100%);
     animation: shimmer 3.2s ease-in-out infinite; animation-delay: 1s; pointer-events: none;
   }
-  
   .header-top-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; position: relative; z-index: 1; }
   .header-top-row > * { min-width: 0; }
-  
-  /* Brand Logo Fetch styling */
-  .brand-tag { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 8px; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.5px; min-width: 0; color: #00d2b4; }
-  .brand-tag img { width: auto; height: 18px; max-width: 100px; flex: 0 0 auto; object-fit: contain; }
-  .brand-tag .date { font-weight: 500; color: rgba(255, 255, 255, 0.65); letter-spacing: normal; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
-  
+  .league-tag { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 6px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.5px; min-width: 0; }
+  .league-tag img { width: 18px; height: 18px; flex: 0 0 auto; }
+  .league-tag .date { font-weight: 400; color: rgba(255, 255, 255, 0.75); letter-spacing: normal; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
   .status-chip {
     display: flex; align-items: center; gap: 5px;
-    background: rgba(83, 211, 55, 0.12); border: 1px solid rgba(83, 211, 55, 0.25);
-    border-radius: 20px; padding: 4px 10px; font-size: 0.68rem; font-weight: 700; white-space: nowrap; flex: 0 0 auto; color: #53d337; text-transform: uppercase;
+    background: rgba(255, 255, 255, 0.14); border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 20px; padding: 4px 10px; font-size: 0.68rem; font-weight: 600; white-space: nowrap; flex: 0 0 auto;
   }
-  .status-chip .dot { width: 6px; height: 6px; border-radius: 50%; background: #53d337; animation: pulseDot 1.6s infinite; }
-  
+  .status-chip .dot { width: 6px; height: 6px; border-radius: 50%; background: #ff3b30; animation: pulseDot 1.6s infinite; }
   .matchup { position: relative; z-index: 1; display: flex; align-items: flex-start; justify-content: space-between; gap: 6px; margin-top: 18px; }
   .team-block { flex: 1; text-align: center; min-width: 0; }
-  
   .team-logo-ring {
     width: clamp(44px, 16vw, 64px); height: clamp(44px, 16vw, 64px);
     margin: 0 auto 9px; border-radius: 50%;
-    background: #1c232d; display: flex; align-items: center; justify-content: center;
-    padding: clamp(6px, 1.5vw, 9px); border: 1px solid #2e3a4a;
+    background: #ffffff; display: flex; align-items: center; justify-content: center;
+    padding: clamp(6px, 1.5vw, 9px);
   }
-  .team-block.away .team-logo-ring { box-shadow: 0 0 0 2px rgba(0, 210, 180, 0.5), 0 0 12px 2px rgba(0, 210, 180, 0.2); }
-  .team-block.home .team-logo-ring { box-shadow: 0 0 0 2px rgba(83, 211, 55, 0.5), 0 0 12px 2px rgba(83, 211, 55, 0.2); }
+  .team-block.away .team-logo-ring { box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.85), 0 0 16px 2px rgba(0, 229, 255, 0.55); }
+  .team-block.home .team-logo-ring { box-shadow: 0 0 0 3px rgba(255, 180, 0, 0.9), 0 0 16px 2px rgba(255, 180, 0, 0.5); }
   .team-logo-ring img { max-width: 100%; max-height: 100%; object-fit: contain; }
-  .team-logo-ring.initials { font-weight: 800; font-size: 1.3rem; color: #8da0b5; }
-  
-  .team-name { font-size: clamp(0.72rem, 2.3vw, 0.84rem); font-weight: 700; line-height: 1.15; overflow-wrap: break-word; hyphens: auto; color: #ffffff; }
-  .team-side { font-size: 0.66rem; color: #8da0b5; margin-top: 3px; letter-spacing: 0.4px; font-weight: 600; }
-  .team-record { font-size: 0.72rem; color: rgba(255, 255, 255, 0.5); margin-top: 2px; }
-  
+  .team-logo-ring.initials { font-weight: 800; font-size: 1.3rem; color: #002f6c; }
+  .team-name { font-size: clamp(0.72rem, 2.3vw, 0.84rem); font-weight: 700; line-height: 1.15; overflow-wrap: break-word; hyphens: auto; }
+  .team-side { font-size: 0.66rem; color: rgba(255, 255, 255, 0.65); margin-top: 3px; letter-spacing: 0.4px; }
+  .team-record { font-size: 0.72rem; color: rgba(255, 255, 255, 0.7); margin-top: 2px; }
   .vs-badge {
     flex: 0 0 auto; align-self: center; margin-top: 18px;
-    background: #1c232d; color: #8da0b5; border: 1px solid #2e3a4a;
+    background: linear-gradient(135deg, #ffb400, #ff7a00); color: #1a1200;
     font-weight: 800; font-style: italic; font-size: 0.72rem; letter-spacing: 0.5px;
-    padding: 4px 9px; border-radius: 999px;
+    padding: 4px 9px; border-radius: 999px; box-shadow: 0 2px 8px rgba(255, 122, 0, 0.5);
   }
-  
-  .card-body { padding: 14px 16px 16px; background: #11151a; }
-  .info-row { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: #c5d1de; padding: 3px 0; }
+  .card-body { padding: 14px 16px 16px; }
+  .info-row { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: #3c4043; padding: 3px 0; }
   .info-row .icon { flex: 0 0 auto; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; }
-  .info-row .icon svg { width: 16px; height: 16px; stroke: #8da0b5; }
-  
+  .info-row .icon svg { width: 16px; height: 16px; }
   .network-badge {
-    display: inline-flex; align-items: center; gap: 6px; background-color: #1c232d; color: #00d2b4;
-    font-weight: bold; font-size: 0.7rem; letter-spacing: 0.5px; padding: 2px 9px; border-radius: 4px; border: 1px solid #2e3a4a;
+    display: inline-flex; align-items: center; gap: 6px; background-color: #002f6c; color: #ffffff;
+    font-weight: bold; font-size: 0.7rem; letter-spacing: 0.5px; padding: 2px 9px; border-radius: 4px;
   }
-  
-  /* Vibrant DraftKings Green CTA */
   .cta-btn {
-    margin-top: 10px; width: 100%; border: none; border-radius: 10px; padding: 11px 10px;
+    margin-top: 8px; width: 100%; border: none; border-radius: 10px; padding: 10px;
     display: flex; align-items: center; justify-content: center; gap: 8px;
-    font-size: 0.9rem; font-weight: 800; color: #081504; letter-spacing: 0.3px;
-    text-transform: uppercase; cursor: pointer; text-decoration: none;
-    background: linear-gradient(135deg, #53d337, #44b62d);
+    font-size: 0.9rem; font-weight: 700; color: #ffffff; letter-spacing: 0.2px;
+    cursor: pointer; text-decoration: none;
+    background: linear-gradient(135deg, #0064ff, #00c6ff);
     animation: ctaGlow 2.4s ease-in-out infinite;
   }
-  .cta-btn svg { width: 15px; height: 15px; fill: #081504; }
-  
-  .powered-by { text-align: center; margin-top: 8px; font-size: 0.66rem; color: #616e7f; }
-  .powered-by b { color: #00d2b4; }
-  
-  .nav-bar { flex: 0 0 auto; display: flex; align-items: center; justify-content: center; gap: 16px; padding: 10px 0 4px; }
-  .arrow-slot { width: 32px; height: 32px; }
+  .cta-btn svg { width: 14px; height: 14px; }
+  .powered-by { text-align: center; margin-top: 6px; font-size: 0.66rem; color: #9aa0a6; }
+  .powered-by b { color: #0064ff; }
+  .nav-bar { flex: 0 0 auto; display: flex; align-items: center; justify-content: center; gap: 16px; padding: 8px 0 4px; }
+  .arrow-slot { width: 30px; height: 30px; }
   .nav-btn {
-    display: none; width: 32px; height: 32px; border-radius: 50%; background: #19202a;
-    border: 1px solid #283444; align-items: center; justify-content: center; cursor: pointer;
+    display: none; width: 30px; height: 30px; border-radius: 50%; background: #ffffff;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2); align-items: center; justify-content: center; cursor: pointer;
   }
-  .nav-btn svg { width: 15px; height: 15px; stroke: #53d337; }
-  .dots { display: flex; align-items: center; gap: 6px; }
-  .dot { display: block; width: 7px; height: 7px; border-radius: 50%; background: #2b3644; cursor: pointer; }
-  
+  .nav-btn svg { width: 15px; height: 15px; }
+  .dots { display: flex; align-items: center; gap: 5px; }
+  .dot { display: block; width: 6px; height: 6px; border-radius: 50%; background: #d0d3d8; cursor: pointer; }
   @media (prefers-reduced-motion: reduce) {
     .card-header::before, .status-chip .dot, .cta-btn { animation: none; }
     .track { transition: none; }
@@ -175,20 +148,20 @@
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
+  /* Only real web links, so a crafted URL can't inject a javascript: link. */
   function safeLink(url) {
     return (url && /^https?:\/\//i.test(url)) ? url : '';
   }
 
-  /* Exactly like your original NFL_LOGO_URL setup, just pointing to Jackpocket now */
-  var JACKPOCKET_LOGO_URL = 'https://play-lh.googleusercontent.com/yv9VjRjYQ0D82aN6bFv_dY-zXQx9Lz6L8bA8e3rT7-61E6y-4_8=s128-rw';
-  var DEFAULT_LINK = 'https://www.jackpocket.com';
+  var JACKPOCKET_LOGO_URL = 'https://is1-ssl.mzstatic.com/image/thumb/Purple116/v4/39/9f/bc/399fbc2a-c66c-5c2e-b419-d46fa1027dd6/AppIcon-1x_U007emarketing-0-7-0-85-220.png/1200x630wa.png';
+  var DEFAULT_LINK = 'https://www.paramountplus.com';
 
   var ICONS = {
-    location: '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>',
-    tv: '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>',
+    location: '<svg viewBox="0 0 24 24" fill="none" stroke="#5f6368" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>',
+    tv: '<svg viewBox="0 0 24 24" fill="none" stroke="#5f6368" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>',
     play: '<svg viewBox="0 0 24 24" fill="#fff"><polygon points="6 4 20 12 6 20"></polygon></svg>',
-    chevronLeft: '<svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>',
-    chevronRight: '<svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>'
+    chevronLeft: '<svg viewBox="0 0 24 24" fill="none" stroke="#0064ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>',
+    chevronRight: '<svg viewBox="0 0 24 24" fill="none" stroke="#0064ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>'
   };
 
   function teamLogoHTML(team) {
@@ -222,8 +195,9 @@
     return '<div class="slide"><div class="match-card">' +
       '<div class="card-header">' +
         '<div class="header-top-row">' +
-          '<div class="brand-tag">' +
-            '<img src="' + JACKPOCKET_LOGO_URL + '" alt="Jackpocket logo">' +
+          '<div class="league-tag">' +
+            '<img src="' + JACKPOCKET_LOGO_URL + '" alt="Jackpocket logo" onerror="this.hidden=true">' +
+            '<span>Jackpocket</span>' +
             '<span>SPORTS</span>' +
             (game.when ? '<span class="date">&middot; ' + escapeHtml(game.when) + '</span>' : '') +
           '</div>' +
@@ -231,15 +205,15 @@
         '</div>' +
         '<div class="matchup">' +
           teamBlockHTML(game.away, 'away', 'AWAY') +
-          '<div class="vs-badge">VS</div>' +
+          '<div class="vs-badge">AT</div>' +
           teamBlockHTML(game.home, 'home', 'HOME') +
         '</div>' +
       '</div>' +
       '<div class="card-body">' + rows +
         '<a class="cta-btn" href="' + escapeHtml(game.watchUrl) + '" target="_blank" rel="noopener noreferrer">' +
-          ICONS.play + ' Watch on Jackpocket' +
+          ICONS.play + ' Watch on Paramount+' +
         '</a>' +
-        '<div class="powered-by">Streaming live only on <b>Jackpocket</b></div>' +
+        '<div class="powered-by">Streaming live only on <b>Paramount+</b></div>' +
       '</div>' +
     '</div></div>';
   }
@@ -255,7 +229,7 @@
         css += '#g' + (j + 2) + ':checked ~ .nav-bar .to-g' + (j + 1) + '.prev-btn { display: flex; } ';
       }
       for (var k = 0; k < n; k++) {
-        css += '#g' + (k + 1) + ':checked ~ .nav-bar .dots label[for="g' + (k + 1) + '"] { width: 20px; border-radius: 4px; background: #53d337; } ';
+        css += '#g' + (k + 1) + ':checked ~ .nav-bar .dots label[for="g' + (k + 1) + '"] { width: 18px; border-radius: 3px; background: linear-gradient(135deg, #0064ff, #00c6ff); } ';
       }
     }
     return css;
@@ -286,12 +260,13 @@
       '</div>';
   }
 
-  /* ---- Read the exact same original parameters from the query string ---- */
+  /* ---- read the cards out of the query string ---- */
   var cardsCount = Math.min(3, Math.max(1, parseInt(qs('cards', '1'), 10) || 1));
 
   var games = [];
   for (var i = 1; i <= cardsCount; i++) {
     var sharedScore = qs('score_' + i, '');
+
     var when = [qs('day_' + i, ''), qs('date_' + i, ''), qs('time_' + i, '')]
       .filter(Boolean).join(', ');
 
