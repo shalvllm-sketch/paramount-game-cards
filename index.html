@@ -3,27 +3,27 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NFL on Paramount+ Carousel</title>
+<title>Jackpocket Sports Carousel</title>
 <style>
   /*
    * Query parameters (per card i, 1-based, up to `cards`):
-   *   cards       1-3, how many cards to render (default 1)
-   *   width       max width in px (accepts 320 or 320px)
-   *   height      accepted and ignored; the page sizes to its content
-   *   team1_i     AWAY team name   (shown left)
-   *   team2_i     HOME team name   (shown right)
-   *   logo1_i     away logo URL    (falls back to initials)
-   *   logo2_i     home logo URL
-   *   day_i       e.g. Sunday
-   *   date_i      e.g. October 18, 2026
-   *   time_i      e.g. 1:00 PM ET
-   *   venue_i     optional; row hidden when empty
-   *   network_i   optional; row hidden when empty
-   *   score_i     optional record/score under both teams
-   *   score1_i    optional, away only
-   *   score2_i    optional, home only
-   *   status_i    UPCOMING | LIVE NOW | FINAL  (default UPCOMING)
-   *   link_i      CTA target (default https://www.paramountplus.com)
+   *    cards        1-3, how many cards to render (default 1)
+   *    width        max width in px (accepts 320 or 320px)
+   *    height       accepted and ignored; the page sizes to its content
+   *    team1_i      AWAY team name   (shown left)
+   *    team2_i      HOME team name   (shown right)
+   *    logo1_i      away logo URL    (falls back to initials)
+   *    logo2_i      home logo URL
+   *    day_i        e.g. Sunday
+   *    date_i       e.g. October 18, 2026
+   *    time_i       e.g. 1:00 PM ET
+   *    venue_i      optional; row hidden when empty
+   *    network_i    optional; row hidden when empty
+   *    score_i      optional record/score under both teams
+   *    score1_i     optional, away only
+   *    score2_i     optional, home only
+   *    status_i     UPCOMING | LIVE NOW | FINAL  (default UPCOMING)
+   *    link_i       CTA target (default https://www.paramountplus.com)
    */
   * { box-sizing: border-box; }
   html, body {
@@ -153,7 +153,7 @@
     return (url && /^https?:\/\//i.test(url)) ? url : '';
   }
 
-  var NFL_LOGO_URL = 'https://a.espncdn.com/i/teamlogos/leagues/500/nfl.png';
+  var JACKPOCKET_LOGO_URL = 'https://is1-ssl.mzstatic.com/image/thumb/Purple116/v4/39/9f/bc/399fbc2a-c66c-5c2e-b419-d46fa1027dd6/AppIcon-1x_U007emarketing-0-7-0-85-220.png/1200x630wa.png';
   var DEFAULT_LINK = 'https://www.paramountplus.com';
 
   var ICONS = {
@@ -196,8 +196,9 @@
       '<div class="card-header">' +
         '<div class="header-top-row">' +
           '<div class="league-tag">' +
-            '<img src="' + NFL_LOGO_URL + '" alt="NFL logo">' +
-            '<span>NFL</span>' +
+            '<img src="' + JACKPOCKET_LOGO_URL + '" alt="Jackpocket logo" onerror="this.hidden=true">' +
+            '<span>Jackpocket</span>' +
+            '<span>SPORTS</span>' +
             (game.when ? '<span class="date">&middot; ' + escapeHtml(game.when) + '</span>' : '') +
           '</div>' +
           '<div class="status-chip"><span class="dot"></span><span>' + escapeHtml(game.status) + '</span></div>' +
@@ -262,15 +263,10 @@
   /* ---- read the cards out of the query string ---- */
   var cardsCount = Math.min(3, Math.max(1, parseInt(qs('cards', '1'), 10) || 1));
 
-  /* width and height params are ignored on purpose: the card fills the
-     frame the chat gives it. Honouring width=320 left grey margins when
-     the frame was wider, and clipped the card when it was narrower. */
-
   var games = [];
   for (var i = 1; i <= cardsCount; i++) {
     var sharedScore = qs('score_' + i, '');
 
-    /* The recipe sends day, date and time separately. */
     var when = [qs('day_' + i, ''), qs('date_' + i, ''), qs('time_' + i, '')]
       .filter(Boolean).join(', ');
 
@@ -280,7 +276,6 @@
       venue: qs('venue_' + i, ''),
       broadcaster: qs('network_' + i, ''),
       watchUrl: safeLink(qs('link_' + i, '')) || safeLink(qs('watchUrl_' + i, '')) || DEFAULT_LINK,
-      /* team1 is the AWAY team: Airtable events read "Away at Home". */
       away: { name: qs('team1_' + i, 'TBD'), record: qs('score1_' + i, sharedScore), logo: qs('logo1_' + i, null) },
       home: { name: qs('team2_' + i, 'TBD'), record: qs('score2_' + i, sharedScore), logo: qs('logo2_' + i, null) }
     });
