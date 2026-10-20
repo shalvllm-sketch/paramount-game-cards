@@ -3,104 +3,143 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jackpocket Sports Carousel</title>
+<title>NFL on Paramount+ Carousel</title>
 <style>
   /*
    * Query parameters (per card i, 1-based, up to `cards`):
-   *    cards        1-3, how many cards to render (default 1)
-   *    width        max width in px (accepts 320 or 320px)
-   *    height       accepted and ignored; the page sizes to its content
-   *    team1_i      AWAY team name   (shown left)
-   *    team2_i      HOME team name   (shown right)
-   *    logo1_i      away logo URL    (falls back to initials)
-   *    logo2_i      home logo URL
-   *    day_i        e.g. Sunday
-   *    date_i       e.g. October 18, 2026
-   *    time_i       e.g. 1:00 PM ET
-   *    venue_i      optional; row hidden when empty
-   *    network_i    optional; row hidden when empty
-   *    score_i      optional record/score under both teams
-   *    score1_i     optional, away only
-   *    score2_i     optional, home only
-   *    status_i     UPCOMING | LIVE NOW | FINAL  (default UPCOMING)
-   *    link_i       CTA target (default https://www.paramountplus.com)
+   *   cards        1-3, how many cards to render (default 1)
+   *   width        max width in px (accepts 320 or 320px)
+   *   height       accepted and ignored; the page sizes to its content
+   *   team1_i      AWAY team name   (shown left)
+   *   team2_i      HOME team name   (shown right)
+   *   logo1_i      away logo URL    (falls back to initials)
+   *   logo2_i      home logo URL
+   *   day_i        e.g. Sunday
+   *   date_i       e.g. October 18, 2026
+   *   time_i       e.g. 1:00 PM ET
+   *   venue_i      optional; row hidden when empty
+   *   network_i    optional; row hidden when empty
+   *   score_i      optional record/score under both teams
+   *   score1_i     optional, away only
+   *   score2_i     optional, home only
+   *   status_i     UPCOMING | LIVE NOW | FINAL  (default UPCOMING)
+   *   link_i       CTA target (default https://www.paramountplus.com)
    */
   * { box-sizing: border-box; }
+  
   html, body {
-    margin: 0; padding: 0; width: 100%; max-width: 100%;
+    margin: 0; 
+    padding: 0; 
+    width: 100%; 
+    max-width: 100%;
     overflow-x: hidden;
     background: transparent;
     font-family: Arial, 'Segoe UI', Roboto, Helvetica, sans-serif;
   }
+  
   #carousel-root { width: 100%; }
+
   @keyframes shimmer {
     0%   { transform: translateX(-60%) rotate(8deg); }
     100% { transform: translateX(160%) rotate(8deg); }
   }
+
   @keyframes pulseDot {
     0%, 100% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.55); }
     50%      { box-shadow: 0 0 0 5px rgba(255, 59, 48, 0); }
   }
+
   @keyframes ctaGlow {
     0%, 100% { box-shadow: 0 4px 14px rgba(0, 100, 255, 0.45); }
     50%      { box-shadow: 0 4px 22px rgba(0, 100, 255, 0.75); }
   }
+
   .pure-carousel { position: relative; width: 100%; max-width: 100%; margin: 0 auto; }
   .radio-nav { display: none; }
   .viewport { overflow: hidden; border-radius: 16px; max-width: 100%; }
   .track { display: flex; transition: transform 0.45s cubic-bezier(.22, .68, 0, 1); }
   .slide { padding: 0; height: 100%; }
-  .match-card { background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 6px 20px rgba(0, 20, 60, 0.18); display: flex; flex-direction: column; }
+  
+  .match-card { 
+    background: #ffffff; 
+    border-radius: 16px; 
+    overflow: hidden; 
+    box-shadow: 0 6px 20px rgba(0, 20, 60, 0.18); 
+    display: flex; 
+    flex-direction: column; 
+  }
+
   .card-header {
-    position: relative; overflow: hidden;
+    position: relative; 
+    overflow: hidden;
     background: linear-gradient(135deg, #001233 0%, #002f6c 45%, #0064ff 100%);
-    padding: 12px 14px 18px; color: #ffffff;
+    padding: 12px 14px 18px; 
+    color: #ffffff;
   }
+
   .card-header::before {
-    content: ''; position: absolute; top: -50%; left: 0; width: 40%; height: 200%;
+    content: ''; 
+    position: absolute; 
+    top: -50%; 
+    left: 0; 
+    width: 40%; 
+    height: 200%;
     background: linear-gradient(100deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.16) 50%, rgba(255,255,255,0) 100%);
-    animation: shimmer 3.2s ease-in-out infinite; animation-delay: 1s; pointer-events: none;
+    animation: shimmer 3.2s ease-in-out infinite; 
+    animation-delay: 1s; 
+    pointer-events: none;
   }
+
   .header-top-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; position: relative; z-index: 1; }
   .header-top-row > * { min-width: 0; }
+  
   .league-tag { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 6px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.5px; min-width: 0; }
   .league-tag img { width: 18px; height: 18px; flex: 0 0 auto; }
   .league-tag .date { font-weight: 400; color: rgba(255, 255, 255, 0.75); letter-spacing: normal; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+
   .status-chip {
     display: flex; align-items: center; gap: 5px;
     background: rgba(255, 255, 255, 0.14); border: 1px solid rgba(255, 255, 255, 0.25);
     border-radius: 20px; padding: 4px 10px; font-size: 0.68rem; font-weight: 600; white-space: nowrap; flex: 0 0 auto;
   }
   .status-chip .dot { width: 6px; height: 6px; border-radius: 50%; background: #ff3b30; animation: pulseDot 1.6s infinite; }
+
   .matchup { position: relative; z-index: 1; display: flex; align-items: flex-start; justify-content: space-between; gap: 6px; margin-top: 18px; }
   .team-block { flex: 1; text-align: center; min-width: 0; }
+
   .team-logo-ring {
     width: clamp(44px, 16vw, 64px); height: clamp(44px, 16vw, 64px);
     margin: 0 auto 9px; border-radius: 50%;
     background: #ffffff; display: flex; align-items: center; justify-content: center;
     padding: clamp(6px, 1.5vw, 9px);
   }
+
   .team-block.away .team-logo-ring { box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.85), 0 0 16px 2px rgba(0, 229, 255, 0.55); }
   .team-block.home .team-logo-ring { box-shadow: 0 0 0 3px rgba(255, 180, 0, 0.9), 0 0 16px 2px rgba(255, 180, 0, 0.5); }
   .team-logo-ring img { max-width: 100%; max-height: 100%; object-fit: contain; }
   .team-logo-ring.initials { font-weight: 800; font-size: 1.3rem; color: #002f6c; }
+
   .team-name { font-size: clamp(0.72rem, 2.3vw, 0.84rem); font-weight: 700; line-height: 1.15; overflow-wrap: break-word; hyphens: auto; }
   .team-side { font-size: 0.66rem; color: rgba(255, 255, 255, 0.65); margin-top: 3px; letter-spacing: 0.4px; }
   .team-record { font-size: 0.72rem; color: rgba(255, 255, 255, 0.7); margin-top: 2px; }
+
   .vs-badge {
     flex: 0 0 auto; align-self: center; margin-top: 18px;
     background: linear-gradient(135deg, #ffb400, #ff7a00); color: #1a1200;
     font-weight: 800; font-style: italic; font-size: 0.72rem; letter-spacing: 0.5px;
     padding: 4px 9px; border-radius: 999px; box-shadow: 0 2px 8px rgba(255, 122, 0, 0.5);
   }
+
   .card-body { padding: 14px 16px 16px; }
   .info-row { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: #3c4043; padding: 3px 0; }
   .info-row .icon { flex: 0 0 auto; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; }
   .info-row .icon svg { width: 16px; height: 16px; }
+
   .network-badge {
     display: inline-flex; align-items: center; gap: 6px; background-color: #002f6c; color: #ffffff;
     font-weight: bold; font-size: 0.7rem; letter-spacing: 0.5px; padding: 2px 9px; border-radius: 4px;
   }
+
   .cta-btn {
     margin-top: 8px; width: 100%; border: none; border-radius: 10px; padding: 10px;
     display: flex; align-items: center; justify-content: center; gap: 8px;
@@ -110,17 +149,22 @@
     animation: ctaGlow 2.4s ease-in-out infinite;
   }
   .cta-btn svg { width: 14px; height: 14px; }
+
   .powered-by { text-align: center; margin-top: 6px; font-size: 0.66rem; color: #9aa0a6; }
   .powered-by b { color: #0064ff; }
+
   .nav-bar { flex: 0 0 auto; display: flex; align-items: center; justify-content: center; gap: 16px; padding: 8px 0 4px; }
   .arrow-slot { width: 30px; height: 30px; }
+
   .nav-btn {
     display: none; width: 30px; height: 30px; border-radius: 50%; background: #ffffff;
     box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2); align-items: center; justify-content: center; cursor: pointer;
   }
   .nav-btn svg { width: 15px; height: 15px; }
+
   .dots { display: flex; align-items: center; gap: 5px; }
   .dot { display: block; width: 6px; height: 6px; border-radius: 50%; background: #d0d3d8; cursor: pointer; }
+
   @media (prefers-reduced-motion: reduce) {
     .card-header::before, .status-chip .dot, .cta-btn { animation: none; }
     .track { transition: none; }
@@ -148,12 +192,11 @@
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
-  /* Only real web links, so a crafted URL can't inject a javascript: link. */
   function safeLink(url) {
     return (url && /^https?:\/\//i.test(url)) ? url : '';
   }
 
-  var JACKPOCKET_LOGO_URL = 'https://is1-ssl.mzstatic.com/image/thumb/Purple116/v4/39/9f/bc/399fbc2a-c66c-5c2e-b419-d46fa1027dd6/AppIcon-1x_U007emarketing-0-7-0-85-220.png/1200x630wa.png';
+  var NFL_LOGO_URL = 'https://a.espncdn.com/i/teamlogos/leagues/500/nfl.png';
   var DEFAULT_LINK = 'https://www.paramountplus.com';
 
   var ICONS = {
@@ -196,9 +239,8 @@
       '<div class="card-header">' +
         '<div class="header-top-row">' +
           '<div class="league-tag">' +
-            '<img src="' + JACKPOCKET_LOGO_URL + '" alt="Jackpocket logo" onerror="this.hidden=true">' +
-            '<span>Jackpocket</span>' +
-            '<span>SPORTS</span>' +
+            '<img src="' + NFL_LOGO_URL + '" alt="NFL logo">' +
+            '<span>NFL</span>' +
             (game.when ? '<span class="date">&middot; ' + escapeHtml(game.when) + '</span>' : '') +
           '</div>' +
           '<div class="status-chip"><span class="dot"></span><span>' + escapeHtml(game.status) + '</span></div>' +
@@ -260,7 +302,6 @@
       '</div>';
   }
 
-  /* ---- read the cards out of the query string ---- */
   var cardsCount = Math.min(3, Math.max(1, parseInt(qs('cards', '1'), 10) || 1));
 
   var games = [];
