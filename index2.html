@@ -3,126 +3,478 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jackpocket Sports Carousel</title>
+<title>Jackpocket Sports Face-Off Carousel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Teko:wght@600;700&display=swap" rel="stylesheet">
 <style>
-  /*
-   * Query parameters (per card i, 1-based, up to `cards`):
-   *    cards        1-3, how many cards to render (default 1)
-   *    width        max width in px (accepts 320 or 320px)
-   *    height       accepted and ignored; the page sizes to its content
-   *    team1_i      AWAY team name   (shown left)
-   *    team2_i      HOME team name   (shown right)
-   *    logo1_i      away logo URL    (falls back to initials)
-   *    logo2_i      home logo URL
-   *    day_i        e.g. Sunday
-   *    date_i       e.g. October 18, 2026
-   *    time_i       e.g. 1:00 PM ET
-   *    venue_i      optional; row hidden when empty
-   *    network_i    optional; row hidden when empty
-   *    score_i      optional record/score under both teams
-   *    score1_i     optional, away only
-   *    score2_i     optional, home only
-   *    status_i     UPCOMING | LIVE NOW | FINAL  (default UPCOMING)
-   *    link_i       CTA target (default https://www.paramountplus.com)
+  /* 
+   * QUERY PARAMS SUPPORT (per card i, 1-based, up to `cards`):
+   *   cards, team1_i, team2_i, logo1_i, logo2_i, day_i, date_i, time_i,
+   *   venue_i, network_i, score_i, score1_i, score2_i, status_i, link_i
    */
   * { box-sizing: border-box; }
+  
+  :root {
+    --dk-green: #53b300;
+    --dk-green-bright: #71dd00;
+    --dk-green-glow: rgba(83, 179, 0, 0.45);
+    --jp-gold: #ffb700;
+    --jp-gold-glow: rgba(255, 183, 0, 0.45);
+    --away-cyan: #00e5ff;
+    --away-cyan-glow: rgba(0, 229, 255, 0.45);
+    --bg-dark: #07090e;
+    --card-bg: #101622;
+    --card-border: rgba(255, 255, 255, 0.12);
+  }
+
   html, body {
     margin: 0; padding: 0; width: 100%; max-width: 100%;
     overflow-x: hidden;
     background: transparent;
-    font-family: Arial, 'Segoe UI', Roboto, Helvetica, sans-serif;
+    font-family: 'Montserrat', sans-serif;
+    color: #ffffff;
   }
-  #carousel-root { width: 100%; }
-  @keyframes shimmer {
-    0%   { transform: translateX(-60%) rotate(8deg); }
-    100% { transform: translateX(160%) rotate(8deg); }
+
+  #carousel-root {
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 10px;
   }
-  @keyframes pulseDot {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.55); }
-    50%      { box-shadow: 0 0 0 5px rgba(255, 59, 48, 0); }
+
+  /* Keyframes */
+  @keyframes stadiumShimmer {
+    0% { transform: translateX(-150%) skewX(-25deg); }
+    100% { transform: translateX(250%) skewX(-25deg); }
   }
-  @keyframes ctaGlow {
-    0%, 100% { box-shadow: 0 4px 14px rgba(0, 100, 255, 0.45); }
-    50%      { box-shadow: 0 4px 22px rgba(0, 100, 255, 0.75); }
+
+  @keyframes pulseLive {
+    0%, 100% { transform: scale(1); opacity: 1; box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.8); }
+    50% { transform: scale(1.1); opacity: 0.8; box-shadow: 0 0 0 6px rgba(255, 59, 48, 0); }
   }
-  .pure-carousel { position: relative; width: 100%; max-width: 100%; margin: 0 auto; }
+
+  @keyframes ctaPulse {
+    0%, 100% { box-shadow: 0 4px 18px var(--dk-green-glow); transform: translateY(0); }
+    50% { box-shadow: 0 6px 28px rgba(113, 221, 0, 0.7); transform: translateY(-1px); }
+  }
+
+  @keyframes ringGlow {
+    0%, 100% { filter: drop-shadow(0 0 6px var(--dk-green-glow)); }
+    50% { filter: drop-shadow(0 0 14px var(--dk-green-bright)); }
+  }
+
+  /* Carousel Base */
+  .pure-carousel { position: relative; width: 100%; }
   .radio-nav { display: none; }
-  .viewport { overflow: hidden; border-radius: 16px; max-width: 100%; }
-  .track { display: flex; transition: transform 0.45s cubic-bezier(.22, .68, 0, 1); }
-  .slide { padding: 0; height: 100%; }
-  .match-card { background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 6px 20px rgba(0, 20, 60, 0.18); display: flex; flex-direction: column; }
+  .viewport { overflow: hidden; border-radius: 20px; width: 100%; }
+  .track { display: flex; transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1); }
+  .slide { padding: 0; height: 100%; flex-shrink: 0; }
+
+  /* Match Card Styling */
+  .match-card {
+    background: linear-gradient(180deg, #161e2e 0%, #0c1018 100%);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  /* Stadium Grid Background Effect */
+  .match-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: 
+      radial-gradient(circle at 50% 20%, rgba(83, 179, 0, 0.08) 0%, transparent 60%),
+      linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 100% 100%, 20px 20px, 20px 20px;
+    pointer-events: none;
+  }
+
+  /* Header */
   .card-header {
-    position: relative; overflow: hidden;
-    background: linear-gradient(135deg, #001233 0%, #002f6c 45%, #0064ff 100%);
-    padding: 12px 14px 18px; color: #ffffff;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, #0f1724 0%, #172236 50%, #0d1420 100%);
+    padding: 14px 16px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   }
-  .card-header::before {
-    content: ''; position: absolute; top: -50%; left: 0; width: 40%; height: 200%;
-    background: linear-gradient(100deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.16) 50%, rgba(255,255,255,0) 100%);
-    animation: shimmer 3.2s ease-in-out infinite; animation-delay: 1s; pointer-events: none;
+
+  /* Shimmer beam */
+  .card-header::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 30%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
+    animation: stadiumShimmer 4s infinite ease-in-out;
+    pointer-events: none;
   }
-  .header-top-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; position: relative; z-index: 1; }
-  .header-top-row > * { min-width: 0; }
-  .league-tag { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 6px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.5px; min-width: 0; }
-  .league-tag img { width: 18px; height: 18px; flex: 0 0 auto; }
-  .league-tag .date { font-weight: 400; color: rgba(255, 255, 255, 0.75); letter-spacing: normal; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+
+  .header-top-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .brand-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 4px 10px;
+    border-radius: 30px;
+    backdrop-filter: blur(8px);
+  }
+
+  .brand-badge img {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    object-fit: cover;
+  }
+
+  .brand-title {
+    font-family: 'Teko', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #ffffff;
+    line-height: 1;
+  }
+
+  .brand-accent {
+    color: var(--dk-green-bright);
+    font-weight: 800;
+  }
+
+  .header-date {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
   .status-chip {
-    display: flex; align-items: center; gap: 5px;
-    background: rgba(255, 255, 255, 0.14); border: 1px solid rgba(255, 255, 255, 0.25);
-    border-radius: 20px; padding: 4px 10px; font-size: 0.68rem; font-weight: 600; white-space: nowrap; flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(83, 179, 0, 0.12);
+    border: 1px solid var(--dk-green);
+    color: var(--dk-green-bright);
+    border-radius: 30px;
+    padding: 3px 10px;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
   }
-  .status-chip .dot { width: 6px; height: 6px; border-radius: 50%; background: #ff3b30; animation: pulseDot 1.6s infinite; }
-  .matchup { position: relative; z-index: 1; display: flex; align-items: flex-start; justify-content: space-between; gap: 6px; margin-top: 18px; }
-  .team-block { flex: 1; text-align: center; min-width: 0; }
+
+  .status-chip.live {
+    background: rgba(255, 59, 48, 0.15);
+    border-color: #ff3b30;
+    color: #ff453a;
+  }
+
+  .status-chip .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--dk-green-bright);
+  }
+
+  .status-chip.live .dot {
+    background: #ff3b30;
+    animation: pulseLive 1.4s infinite ease-in-out;
+  }
+
+  /* Matchup Grid */
+  .matchup {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 8px;
+    margin-top: 18px;
+  }
+
+  .team-block {
+    text-align: center;
+    min-width: 0;
+  }
+
+  .logo-ring-container {
+    position: relative;
+    width: clamp(54px, 15vw, 68px);
+    height: clamp(54px, 15vw, 68px);
+    margin: 0 auto 8px;
+  }
+
   .team-logo-ring {
-    width: clamp(44px, 16vw, 64px); height: clamp(44px, 16vw, 64px);
-    margin: 0 auto 9px; border-radius: 50%;
-    background: #ffffff; display: flex; align-items: center; justify-content: center;
-    padding: clamp(6px, 1.5vw, 9px);
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: linear-gradient(145deg, #1f2a3e, #0e1420);
+    border: 2px solid rgba(255, 255, 255, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+    position: relative;
+    z-index: 1;
   }
-  .team-block.away .team-logo-ring { box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.85), 0 0 16px 2px rgba(0, 229, 255, 0.55); }
-  .team-block.home .team-logo-ring { box-shadow: 0 0 0 3px rgba(255, 180, 0, 0.9), 0 0 16px 2px rgba(255, 180, 0, 0.5); }
-  .team-logo-ring img { max-width: 100%; max-height: 100%; object-fit: contain; }
-  .team-logo-ring.initials { font-weight: 800; font-size: 1.3rem; color: #002f6c; }
-  .team-name { font-size: clamp(0.72rem, 2.3vw, 0.84rem); font-weight: 700; line-height: 1.15; overflow-wrap: break-word; hyphens: auto; }
-  .team-side { font-size: 0.66rem; color: rgba(255, 255, 255, 0.65); margin-top: 3px; letter-spacing: 0.4px; }
-  .team-record { font-size: 0.72rem; color: rgba(255, 255, 255, 0.7); margin-top: 2px; }
+
+  .team-block.away .team-logo-ring {
+    border-color: var(--away-cyan);
+    box-shadow: 0 0 16px var(--away-cyan-glow);
+  }
+
+  .team-block.home .team-logo-ring {
+    border-color: var(--jp-gold);
+    box-shadow: 0 0 16px var(--jp-gold-glow);
+  }
+
+  .team-logo-ring img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+  }
+
+  .team-logo-ring.initials {
+    font-family: 'Teko', sans-serif;
+    font-weight: 700;
+    font-size: 1.6rem;
+    color: #ffffff;
+  }
+
+  .team-name {
+    font-size: clamp(0.8rem, 2.8vw, 0.95rem);
+    font-weight: 800;
+    line-height: 1.1;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .team-tag {
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.45);
+    letter-spacing: 1px;
+    margin-top: 2px;
+  }
+
+  .team-score {
+    font-family: 'Teko', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--dk-green-bright);
+    line-height: 1;
+    margin-top: 2px;
+    letter-spacing: 1px;
+  }
+
+  /* Metallic angular VS Badge */
+  .vs-badge-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
   .vs-badge {
-    flex: 0 0 auto; align-self: center; margin-top: 18px;
-    background: linear-gradient(135deg, #ffb400, #ff7a00); color: #1a1200;
-    font-weight: 800; font-style: italic; font-size: 0.72rem; letter-spacing: 0.5px;
-    padding: 4px 9px; border-radius: 999px; box-shadow: 0 2px 8px rgba(255, 122, 0, 0.5);
+    background: linear-gradient(135deg, #2a384e 0%, #121926 100%);
+    border: 1.5px solid var(--dk-green-bright);
+    color: var(--dk-green-bright);
+    font-family: 'Teko', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    letter-spacing: 1px;
+    padding: 2px 10px;
+    border-radius: 6px;
+    transform: skewX(-12deg);
+    box-shadow: 0 0 12px var(--dk-green-glow);
   }
-  .card-body { padding: 14px 16px 16px; }
-  .info-row { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: #3c4043; padding: 3px 0; }
-  .info-row .icon { flex: 0 0 auto; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; }
-  .info-row .icon svg { width: 16px; height: 16px; }
-  .network-badge {
-    display: inline-flex; align-items: center; gap: 6px; background-color: #002f6c; color: #ffffff;
-    font-weight: bold; font-size: 0.7rem; letter-spacing: 0.5px; padding: 2px 9px; border-radius: 4px;
+
+  .vs-badge span {
+    display: block;
+    transform: skewX(12deg);
   }
+
+  /* Body Content */
+  .card-body {
+    padding: 16px;
+    position: relative;
+    z-index: 2;
+    background: rgba(12, 16, 24, 0.6);
+    backdrop-filter: blur(10px);
+  }
+
+  .info-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 14px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 10px 12px;
+    border-radius: 12px;
+  }
+
+  .info-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  .info-left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 600;
+  }
+
+  .info-left svg {
+    width: 14px;
+    height: 14px;
+    stroke: var(--dk-green-bright);
+  }
+
+  .info-value {
+    font-weight: 700;
+    color: #ffffff;
+  }
+
+  .network-pill {
+    background: linear-gradient(90deg, #1b263b, #2b3a55);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  /* Main CTA Button */
   .cta-btn {
-    margin-top: 8px; width: 100%; border: none; border-radius: 10px; padding: 10px;
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-    font-size: 0.9rem; font-weight: 700; color: #ffffff; letter-spacing: 0.2px;
-    cursor: pointer; text-decoration: none;
-    background: linear-gradient(135deg, #0064ff, #00c6ff);
-    animation: ctaGlow 2.4s ease-in-out infinite;
+    width: 100%;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 800;
+    color: #000000;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    text-decoration: none;
+    background: linear-gradient(135deg, var(--dk-green-bright) 0%, var(--dk-green) 100%);
+    animation: ctaPulse 2.5s infinite ease-in-out;
+    transition: transform 0.2s ease;
   }
-  .cta-btn svg { width: 14px; height: 14px; }
-  .powered-by { text-align: center; margin-top: 6px; font-size: 0.66rem; color: #9aa0a6; }
-  .powered-by b { color: #0064ff; }
-  .nav-bar { flex: 0 0 auto; display: flex; align-items: center; justify-content: center; gap: 16px; padding: 8px 0 4px; }
-  .arrow-slot { width: 30px; height: 30px; }
+
+  .cta-btn:active {
+    transform: scale(0.98);
+  }
+
+  .cta-btn svg {
+    width: 16px;
+    height: 16px;
+    fill: #000000;
+  }
+
+  .footer-sub {
+    text-align: center;
+    margin-top: 8px;
+    font-size: 0.62rem;
+    color: rgba(255, 255, 255, 0.4);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  .footer-sub b {
+    color: var(--dk-green-bright);
+  }
+
+  /* Carousel Navigation */
+  .nav-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 12px;
+  }
+
+  .arrow-slot { width: 32px; height: 32px; }
+
   .nav-btn {
-    display: none; width: 30px; height: 30px; border-radius: 50%; background: #ffffff;
-    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2); align-items: center; justify-content: center; cursor: pointer;
+    display: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #162030;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
   }
-  .nav-btn svg { width: 15px; height: 15px; }
-  .dots { display: flex; align-items: center; gap: 5px; }
-  .dot { display: block; width: 6px; height: 6px; border-radius: 50%; background: #d0d3d8; cursor: pointer; }
+
+  .nav-btn:hover {
+    background: var(--dk-green);
+    border-color: var(--dk-green-bright);
+  }
+
+  .nav-btn:hover svg {
+    stroke: #000000;
+  }
+
+  .nav-btn svg {
+    width: 16px;
+    height: 16px;
+    stroke: var(--dk-green-bright);
+    transition: stroke 0.2s;
+  }
+
+  .dots { display: flex; align-items: center; gap: 6px; }
+
+  .dot {
+    display: block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .card-header::before, .status-chip .dot, .cta-btn { animation: none; }
+    .card-header::after, .status-chip.live .dot, .cta-btn { animation: none; }
     .track { transition: none; }
   }
 </style>
@@ -148,72 +500,76 @@
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
-  /* Only real web links, so a crafted URL can't inject a javascript: link. */
   function safeLink(url) {
     return (url && /^https?:\/\//i.test(url)) ? url : '';
   }
 
-  var JACKPOCKET_LOGO_URL = 'https://is1-ssl.mzstatic.com/image/thumb/Purple116/v4/39/9f/bc/399fbc2a-c66c-5c2e-b419-d46fa1027dd6/AppIcon-1x_U007emarketing-0-7-0-85-220.png/1200x630wa.png';
-  var DEFAULT_LINK = 'https://www.paramountplus.com';
+  var JACKPOCKET_LOGO = 'https://is1-ssl.mzstatic.com/image/thumb/Purple116/v4/39/9f/bc/399fbc2a-c66c-5c2e-b419-d46fa1027dd6/AppIcon-1x_U007emarketing-0-7-0-85-220.png/1200x630wa.png';
+  var DEFAULT_LINK = 'https://www.jackpocket.com';
 
   var ICONS = {
-    location: '<svg viewBox="0 0 24 24" fill="none" stroke="#5f6368" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>',
-    tv: '<svg viewBox="0 0 24 24" fill="none" stroke="#5f6368" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>',
-    play: '<svg viewBox="0 0 24 24" fill="#fff"><polygon points="6 4 20 12 6 20"></polygon></svg>',
-    chevronLeft: '<svg viewBox="0 0 24 24" fill="none" stroke="#0064ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>',
-    chevronRight: '<svg viewBox="0 0 24 24" fill="none" stroke="#0064ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>'
+    location: '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>',
+    tv: '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>',
+    play: '<svg viewBox="0 0 24 24"><polygon points="6 4 20 12 6 20"></polygon></svg>',
+    chevronLeft: '<svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>',
+    chevronRight: '<svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>'
   };
 
   function teamLogoHTML(team) {
     if (team.logo) {
-      return '<img src="' + escapeHtml(team.logo) + '" alt="' + escapeHtml(team.name) + ' logo">';
+      return '<img src="' + escapeHtml(team.logo) + '" alt="' + escapeHtml(team.name) + ' logo" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'block\';">' +
+             '<span style="display:none;">' + escapeHtml(String(team.name || '').slice(0, 2).toUpperCase()) + '</span>';
     }
-    var source = team.name || '';
+    var source = team.name || 'TBD';
     return escapeHtml(String(source).slice(0, 2).toUpperCase());
   }
 
   function teamBlockHTML(team, side, label) {
+    var isInitials = !team.logo;
     return '<div class="team-block ' + side + '">' +
-      '<div class="team-logo-ring' + (team.logo ? '' : ' initials') + '">' + teamLogoHTML(team) + '</div>' +
-      '<div class="team-name">' + escapeHtml(team.name || 'TBD') + '</div>' +
-      '<div class="team-side">' + label + '</div>' +
-      (team.record ? '<div class="team-record">' + escapeHtml(team.record) + '</div>' : '') +
+      '<div class="logo-ring-container">' +
+        '<div class="team-logo-ring' + (isInitials ? ' initials' : '') + '">' + teamLogoHTML(team) + '</div>' +
+      '</div>' +
+      '<div class="team-name" title="' + escapeHtml(team.name) + '">' + escapeHtml(team.name || 'TBD') + '</div>' +
+      '<div class="team-tag">' + label + '</div>' +
+      (team.record ? '<div class="team-score">' + escapeHtml(team.record) + '</div>' : '') +
       '</div>';
   }
 
   function slideHTML(game) {
+    var isLive = (game.status || '').toUpperCase().indexOf('LIVE') !== -1;
     var rows = '';
+    
     if (game.venue) {
-      rows += '<div class="info-row"><span class="icon">' + ICONS.location + '</span>' +
-              '<span>' + escapeHtml(game.venue) + '</span></div>';
+      rows += '<div class="info-row"><div class="info-left">' + ICONS.location + ' Venue</div>' +
+              '<div class="info-value">' + escapeHtml(game.venue) + '</div></div>';
     }
     if (game.broadcaster) {
-      rows += '<div class="info-row"><span class="icon">' + ICONS.tv + '</span>' +
-              '<span>Watch on</span><span class="network-badge">' + escapeHtml(game.broadcaster) + '</span></div>';
+      rows += '<div class="info-row"><div class="info-left">' + ICONS.tv + ' Network</div>' +
+              '<div class="network-pill">' + escapeHtml(game.broadcaster) + '</div></div>';
     }
 
     return '<div class="slide"><div class="match-card">' +
       '<div class="card-header">' +
         '<div class="header-top-row">' +
-          '<div class="league-tag">' +
-            '<img src="' + JACKPOCKET_LOGO_URL + '" alt="Jackpocket logo" onerror="this.hidden=true">' +
-            '<span>Jackpocket</span>' +
-            '<span>SPORTS</span>' +
-            (game.when ? '<span class="date">&middot; ' + escapeHtml(game.when) + '</span>' : '') +
+          '<div class="brand-badge">' +
+            '<img src="' + JACKPOCKET_LOGO + '" alt="Jackpocket" onerror="this.style.display=\'none\'">' +
+            '<span class="brand-title">JACKPOCKET <span class="brand-accent">SPORTS</span></span>' +
           '</div>' +
-          '<div class="status-chip"><span class="dot"></span><span>' + escapeHtml(game.status) + '</span></div>' +
+          '<div class="status-chip' + (isLive ? ' live' : '') + '"><span class="dot"></span><span>' + escapeHtml(game.status) + '</span></div>' +
         '</div>' +
         '<div class="matchup">' +
           teamBlockHTML(game.away, 'away', 'AWAY') +
-          '<div class="vs-badge">AT</div>' +
+          '<div class="vs-badge-wrap"><div class="vs-badge"><span>VS</span></div></div>' +
           teamBlockHTML(game.home, 'home', 'HOME') +
         '</div>' +
       '</div>' +
-      '<div class="card-body">' + rows +
+      '<div class="card-body">' +
+        (rows ? '<div class="info-grid">' + rows + '</div>' : '') +
         '<a class="cta-btn" href="' + escapeHtml(game.watchUrl) + '" target="_blank" rel="noopener noreferrer">' +
-          ICONS.play + ' Watch on Paramount+' +
+          ICONS.play + ' Watch / Place Bets' +
         '</a>' +
-        '<div class="powered-by">Streaming live only on <b>Paramount+</b></div>' +
+        '<div class="footer-sub">' + (game.when ? escapeHtml(game.when) + ' &bull; ' : '') + 'Powered by <b>Jackpocket</b></div>' +
       '</div>' +
     '</div></div>';
   }
@@ -229,7 +585,7 @@
         css += '#g' + (j + 2) + ':checked ~ .nav-bar .to-g' + (j + 1) + '.prev-btn { display: flex; } ';
       }
       for (var k = 0; k < n; k++) {
-        css += '#g' + (k + 1) + ':checked ~ .nav-bar .dots label[for="g' + (k + 1) + '"] { width: 18px; border-radius: 3px; background: linear-gradient(135deg, #0064ff, #00c6ff); } ';
+        css += '#g' + (k + 1) + ':checked ~ .nav-bar .dots label[for="g' + (k + 1) + '"] { width: 22px; border-radius: 10px; background: var(--dk-green-bright); box-shadow: 0 0 8px var(--dk-green-glow); } ';
       }
     }
     return css;
@@ -260,15 +616,14 @@
       '</div>';
   }
 
-  /* ---- read the cards out of the query string ---- */
+  /* Parse query parameters */
   var cardsCount = Math.min(3, Math.max(1, parseInt(qs('cards', '1'), 10) || 1));
 
   var games = [];
   for (var i = 1; i <= cardsCount; i++) {
     var sharedScore = qs('score_' + i, '');
-
     var when = [qs('day_' + i, ''), qs('date_' + i, ''), qs('time_' + i, '')]
-      .filter(Boolean).join(', ');
+      .filter(Boolean).join(' ');
 
     games.push({
       when: when,
@@ -276,8 +631,8 @@
       venue: qs('venue_' + i, ''),
       broadcaster: qs('network_' + i, ''),
       watchUrl: safeLink(qs('link_' + i, '')) || safeLink(qs('watchUrl_' + i, '')) || DEFAULT_LINK,
-      away: { name: qs('team1_' + i, 'TBD'), record: qs('score1_' + i, sharedScore), logo: qs('logo1_' + i, null) },
-      home: { name: qs('team2_' + i, 'TBD'), record: qs('score2_' + i, sharedScore), logo: qs('logo2_' + i, null) }
+      away: { name: qs('team1_' + i, 'AWAY TEAM'), record: qs('score1_' + i, sharedScore), logo: qs('logo1_' + i, null) },
+      home: { name: qs('team2_' + i, 'HOME TEAM'), record: qs('score2_' + i, sharedScore), logo: qs('logo2_' + i, null) }
     });
   }
 
