@@ -430,8 +430,11 @@
      forcing is removed here -- the card now sizes itself purely from
      its own content (see the generous header/body padding further
      down), with nothing above it imposing a hidden maximum. */
-  #carousel-root { width: 100%; }
-  .card-body { display: flex; flex-direction: column; justify-content: center; gap: 18px; }
+  /* The chat iframe is a fixed 390px tall. Cap the card to that and
+     hide any overflow, so content fits without scrollbars. */
+  #carousel-root { width: 100%; max-height: 390px; overflow: hidden; }
+  .pure-carousel { max-height: 390px; }
+  .card-body { display: flex; flex-direction: column; justify-content: center; gap: 10px; }
   @keyframes shimmer {
     0%   { transform: translateX(-60%) rotate(8deg); }
     100% { transform: translateX(160%) rotate(8deg); }
@@ -456,7 +459,7 @@
   .card-header {
     position: relative; overflow: hidden;
     background: linear-gradient(135deg, #001233 0%, #002f6c 45%, #0064ff 100%);
-    padding: 18px 16px 28px; color: #ffffff;
+    padding: 12px 14px 16px; color: #ffffff;
   }
   .card-header::before {
     content: ''; position: absolute; top: -50%; left: 0; width: 40%; height: 200%;
@@ -474,29 +477,29 @@
     border-radius: 20px; padding: 4px 10px; font-size: 0.68rem; font-weight: 600; white-space: nowrap; flex: 0 0 auto;
   }
   .status-chip .dot { width: 6px; height: 6px; border-radius: 50%; background: #ff3b30; animation: pulseDot 1.6s infinite; }
-  .matchup { position: relative; z-index: 1; display: flex; align-items: flex-start; justify-content: space-between; gap: 6px; margin-top: 30px; }
+  .matchup { position: relative; z-index: 1; display: flex; align-items: flex-start; justify-content: space-between; gap: 6px; margin-top: 16px; }
   .team-block { flex: 1; text-align: center; min-width: 0; }
   .team-logo-ring {
-    width: clamp(56px, 18vw, 86px); height: clamp(56px, 18vw, 86px);
-    margin: 0 auto 12px; border-radius: 50%;
+    width: clamp(48px, 15vw, 64px); height: clamp(48px, 15vw, 64px);
+    margin: 0 auto 8px; border-radius: 50%;
     background: #ffffff; display: flex; align-items: center; justify-content: center;
-    padding: clamp(8px, 1.8vw, 12px);
+    padding: clamp(7px, 1.5vw, 9px);
   }
   .team-block.away .team-logo-ring { box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.85), 0 0 16px 2px rgba(0, 229, 255, 0.55); }
   .team-block.home .team-logo-ring { box-shadow: 0 0 0 3px rgba(255, 180, 0, 0.9), 0 0 16px 2px rgba(255, 180, 0, 0.5); }
   .team-logo-ring img { max-width: 100%; max-height: 100%; object-fit: contain; }
   .team-logo-ring.initials { font-weight: 800; font-size: 1.3rem; color: #002f6c; }
-  .team-name { font-size: clamp(0.8rem, 2.5vw, 0.95rem); font-weight: 700; line-height: 1.15; overflow-wrap: break-word; hyphens: auto; }
+  .team-name { font-size: clamp(0.74rem, 2.3vw, 0.86rem); font-weight: 700; line-height: 1.15; overflow-wrap: break-word; hyphens: auto; }
   .team-side { font-size: 0.66rem; color: rgba(255, 255, 255, 0.65); margin-top: 3px; letter-spacing: 0.4px; }
   .team-record { font-size: 0.72rem; color: rgba(255, 255, 255, 0.7); margin-top: 2px; }
   .vs-badge {
-    flex: 0 0 auto; align-self: center; margin-top: 18px;
+    flex: 0 0 auto; align-self: center; margin-top: 14px;
     background: linear-gradient(135deg, #ffb400, #ff7a00); color: #1a1200;
     font-weight: 800; font-style: italic; font-size: 0.72rem; letter-spacing: 0.5px;
     padding: 4px 9px; border-radius: 999px; box-shadow: 0 2px 8px rgba(255, 122, 0, 0.5);
   }
-  .card-body { padding: 20px 18px 22px; }
-  .info-row { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: #3c4043; padding: 3px 0; }
+  .card-body { padding: 12px 16px 14px; }
+  .info-row { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: #3c4043; padding: 2px 0; }
   .info-row .icon { flex: 0 0 auto; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; }
   .info-row .icon svg { width: 16px; height: 16px; }
   .network-badge {
@@ -504,7 +507,7 @@
     font-weight: bold; font-size: 0.7rem; letter-spacing: 0.5px; padding: 2px 9px; border-radius: 4px;
   }
   .cta-btn {
-    margin-top: 8px; width: 100%; border: none; border-radius: 10px; padding: 10px;
+    margin-top: 4px; width: 100%; border: none; border-radius: 10px; padding: 9px;
     display: flex; align-items: center; justify-content: center; gap: 8px;
     font-size: 0.9rem; font-weight: 700; color: #ffffff; letter-spacing: 0.2px;
     cursor: pointer; text-decoration: none;
@@ -514,7 +517,7 @@
   .cta-btn svg { width: 14px; height: 14px; }
   .powered-by { text-align: center; margin-top: 6px; font-size: 0.66rem; color: #9aa0a6; }
   .powered-by b { color: #0064ff; }
-  .nav-bar { flex: 0 0 auto; display: flex; align-items: center; justify-content: center; gap: 16px; padding: 8px 0 4px; }
+  .nav-bar { flex: 0 0 auto; display: flex; align-items: center; justify-content: center; gap: 16px; padding: 5px 0 3px; }
   .arrow-slot { width: 30px; height: 30px; }
   .nav-btn {
     display: none; width: 30px; height: 30px; border-radius: 50%; background: #ffffff;
