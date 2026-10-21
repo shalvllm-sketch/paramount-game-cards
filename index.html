@@ -259,6 +259,29 @@
       '</div>';
   }
 
+  /* ---- de-duplicate: the chat may render this exact URL 2-3 times in
+     the same reply (one per generated candidate response). All copies
+     load the identical query string within a second of each other, and
+     they're same-origin, so sessionStorage is shared between them.
+     The first one to run "claims" this URL; later copies render
+     nothing instead of a stacked duplicate card. ---- */
+  (function () {
+    try {
+      var key = 'nfl-card-claim:' + location.search;
+      var now = Date.now();
+      var claimed = sessionStorage.getItem(key);
+      if (claimed && now - parseInt(claimed, 10) < 4000) {
+        document.documentElement.setAttribute('data-duplicate', 'true');
+      } else {
+        sessionStorage.setItem(key, String(now));
+      }
+    } catch (e) { /* storage unavailable -- render normally */ }
+  })();
+
+  if (document.documentElement.getAttribute('data-duplicate') === 'true') {
+    return; /* a sibling iframe already claimed this card; stay blank */
+  }
+
   /* ---- read the cards out of the query string ---- */
   var cardsCount = Math.min(3, Math.max(1, parseInt(qs('cards', '1'), 10) || 1));
 
@@ -333,8 +356,6 @@
 
 </body>
 </html>
-
-
 
 <!-- <!doctype html>
 <html lang="en">
@@ -600,9 +621,11 @@
   /* ---- read the cards out of the query string ---- */
   var cardsCount = Math.min(3, Math.max(1, parseInt(qs('cards', '1'), 10) || 1));
 
-  /* width and height params are ignored on purpose: the card fills the
-     frame the chat gives it. Honouring width=320 left grey margins when
-     the frame was wider, and clipped the card when it was narrower. */
+  /* The chat widget sets the real <iframe> width/height attributes from
+     these URL params directly -- it has nothing to do with our CSS.
+     We no longer rely on width here (see postHeight below), and the
+     initial height is just a reasonable default until we report the
+     real one. */
 
   var games = [];
   for (var i = 1; i <= cardsCount; i++) {
@@ -632,10 +655,40 @@
     '<div class="pure-carousel">' + buildRadios(cardsCount) +
     '<div class="viewport"><div class="track">' + games.map(slideHTML).join('') + '</div></div>' +
     buildNavBar(cardsCount) + '</div>';
+
+  /* ---- tell the parent chat window our real height ---- */
+  /* Netomi's widget reads this exact message shape and resizes the
+     iframe element to match, overriding the height= URL param. */
+  var lastSent = 0;
+  function postHeight() {
+    var h = Math.ceil(document.body.getBoundingClientRect().height);
+    if (!h || Math.abs(h - lastSent) < 2) return;
+    lastSent = h;
+    try {
+      window.parent.postMessage(
+        { eventType: 'UPDATE_PARENT_WINDOW_STYLE', data: { height: h + 'px' } },
+        '*'
+      );
+    } catch (e) { /* no parent window (standalone preview) -- ignore */ }
+  }
+
+  try {
+    window.parent.postMessage({ eventType: 'DOCUMENT_LOADED', data: {} }, '*');
+  } catch (e) {}
+
+  postHeight();
+  window.addEventListener('load', postHeight);
+
+  /* Logos and fonts can finish loading after the first measurement and
+     change the card's height, so keep watching and correct it. */
+  if (window.ResizeObserver) {
+    new ResizeObserver(postHeight).observe(document.body);
+  } else {
+    setTimeout(postHeight, 300);
+    setTimeout(postHeight, 1000);
+  }
 })();
 </script>
 
 </body>
-</html>
-
- -->
+</html> -->
