@@ -421,13 +421,17 @@
      is genuinely used: larger logos, more generous spacing. If a
      future container is a different size, this still degrades
      gracefully -- the card simply won't perfectly fill it. */
-  #carousel-root { width: 100%; height: 100%; display: flex; flex-direction: column; }
-  .pure-carousel { flex: 1 1 auto; display: flex; flex-direction: column; }
-  .viewport { flex: 1 1 auto; display: flex; flex-direction: column; }
-  .track { flex: 1 1 auto; }
-  .slide { height: auto; }
-  .match-card { flex: 1 1 auto; }
-  .card-body { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: center; gap: 18px; }
+  /* We previously forced every ancestor (root/carousel/viewport/track/
+     slide) to flex:1/height:100% to try to stretch the card to fill a
+     fixed-height frame. That chain, combined with overflow:hidden
+     below, created an invisible ceiling: any extra height we added to
+     the card (bigger logos, more padding) was silently CLIPPED rather
+     than shown, which is why the measured height never moved. That
+     forcing is removed here -- the card now sizes itself purely from
+     its own content (see the generous header/body padding further
+     down), with nothing above it imposing a hidden maximum. */
+  #carousel-root { width: 100%; }
+  .card-body { display: flex; flex-direction: column; justify-content: center; gap: 18px; }
   @keyframes shimmer {
     0%   { transform: translateX(-60%) rotate(8deg); }
     100% { transform: translateX(160%) rotate(8deg); }
@@ -442,9 +446,12 @@
   }
   .pure-carousel { position: relative; width: 100%; max-width: 100%; margin: 0 auto; }
   .radio-nav { display: none; }
-  .viewport { overflow: hidden; border-radius: 16px; max-width: 100%; }
-  .track { display: flex; transition: transform 0.45s cubic-bezier(.22, .68, 0, 1); }
-  .slide { padding: 0; height: 100%; }
+  /* overflow-x hides the other carousel slides as they sit side by
+     side; overflow-y must stay visible or any height we give the card
+     gets silently clipped instead of actually showing. */
+  .viewport { overflow-x: hidden; overflow-y: visible; border-radius: 16px; max-width: 100%; }
+  .track { display: flex; align-items: flex-start; transition: transform 0.45s cubic-bezier(.22, .68, 0, 1); }
+  .slide { padding: 0; }
   .match-card { background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 6px 20px rgba(0, 20, 60, 0.18); display: flex; flex-direction: column; }
   .card-header {
     position: relative; overflow: hidden;
