@@ -260,17 +260,21 @@
   }
 
   /* ---- de-duplicate: the chat may render this exact URL 2-3 times in
-     the same reply (one per generated candidate response). All copies
-     load the identical query string within a second of each other, and
-     they're same-origin, so sessionStorage is shared between them.
-     The first one to run "claims" this URL; later copies render
-     nothing instead of a stacked duplicate card. ---- */
+     the same reply (one per generated candidate response). Copies can
+     appear staggered by several seconds, not instantly, if the chat
+     reveals message bubbles one at a time. All copies are same-origin,
+     so sessionStorage is shared between them. The first one to run
+     "claims" this URL for a window generous enough to cover that
+     stagger; later copies within the window render nothing instead of
+     a stacked duplicate card. A later, genuinely new request for the
+     exact same game (a different conversation turn) is extremely
+     unlikely to land within this same window. ---- */
   var isDuplicate = false;
   try {
     var key = 'nfl-card-claim:' + location.search;
     var now = Date.now();
     var claimed = sessionStorage.getItem(key);
-    if (claimed && now - parseInt(claimed, 10) < 4000) {
+    if (claimed && now - parseInt(claimed, 10) < 20000) {
       isDuplicate = true;
     } else {
       sessionStorage.setItem(key, String(now));
