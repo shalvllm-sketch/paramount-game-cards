@@ -108,6 +108,21 @@
   .nav-btn svg { width: 15px; height: 15px; }
   .dots { display: flex; align-items: center; gap: 5px; }
   .dot { display: block; width: 6px; height: 6px; border-radius: 50%; background: #d0d3d8; cursor: pointer; }
+
+  /* small pause/play toggle, bottom-right, only present when autoplay is live */
+  .autoplay-toggle {
+    position: absolute; bottom: 4px; right: 4px;
+    width: 20px; height: 20px; padding: 0;
+    border: none; border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.22);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 3;
+  }
+  .autoplay-toggle:focus-visible { outline: 2px solid #0064ff; outline-offset: 1px; }
+  .autoplay-toggle svg { width: 10px; height: 10px; display: block; }
+
   @media (prefers-reduced-motion: reduce) {
     .card-header::before, .status-chip .dot, .cta-btn { animation: none; }
     .track { transition: none; }
@@ -148,7 +163,9 @@
     tv: '<svg viewBox="0 0 24 24" fill="none" stroke="#5f6368" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>',
     play: '<svg viewBox="0 0 24 24" fill="#fff"><polygon points="6 4 20 12 6 20"></polygon></svg>',
     chevronLeft: '<svg viewBox="0 0 24 24" fill="none" stroke="#0064ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>',
-    chevronRight: '<svg viewBox="0 0 24 24" fill="none" stroke="#0064ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>'
+    chevronRight: '<svg viewBox="0 0 24 24" fill="none" stroke="#0064ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>',
+    pauseSmall: '<svg viewBox="0 0 10 10" fill="#0064ff" aria-hidden="true"><rect x="2" y="1.5" width="2" height="7" rx="0.4"></rect><rect x="6" y="1.5" width="2" height="7" rx="0.4"></rect></svg>',
+    playSmall:  '<svg viewBox="0 0 10 10" fill="#0064ff" aria-hidden="true"><polygon points="2.5,1 8.5,5 2.5,9"></polygon></svg>'
   };
 
   function teamLogoHTML(team) {
@@ -271,9 +288,16 @@
 
   var cardsCount = Math.min(3, Math.max(1, parseInt(qs('cards', '1'), 10) || 1));
 
-  /* optional deep-link to a starting card (?start=N, 1-based); no view change */
+  /* optional deep-link to a starting card (?start=N, 1-based) */
   var startIdx = (parseInt(qs('start', '1'), 10) || 1) - 1;
   if (startIdx < 0 || startIdx >= cardsCount) startIdx = 0;
+
+  /* autoplay interval (ms); only honored for 2+ cards and when motion is OK */
+  var reduceMotion = window.matchMedia &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var autoplayMs = parseInt(qs('autoplay', '0'), 10) || 0;
+  if (autoplayMs && autoplayMs < 1500) autoplayMs = 1500;      /* floor so a typo can't strobe */
+  if (reduceMotion || cardsCount <= 1) autoplayMs = 0;
 
   var games = [];
   for (var i = 1; i <= cardsCount; i++) {
@@ -297,12 +321,17 @@
   styleTag.textContent = buildDynamicCSS(cardsCount);
   document.head.appendChild(styleTag);
 
+  /* only inject the toggle button when autoplay is actually going to run */
+  var toggleHTML = autoplayMs
+    ? '<button type="button" class="autoplay-toggle" aria-label="Pause auto-scroll" aria-pressed="false">' + ICONS.pauseSmall + '</button>'
+    : '';
+
   document.getElementById('carousel-root').innerHTML =
     '<div class="pure-carousel">' + buildRadios(cardsCount, startIdx) +
     '<div class="viewport"><div class="track">' + games.map(slideHTML).join('') + '</div></div>' +
-    buildNavBar(cardsCount) + '</div>';
+    buildNavBar(cardsCount) + toggleHTML + '</div>';
 
-  /* ---- interaction layer: autoplay + swipe + keyboard (behavior only, no view change) ---- */
+  /* ---- interaction layer: autoplay + swipe + keyboard + pause toggle ---- */
   (function initInteractions() {
     var root = document.getElementById('carousel-root');
     if (!root) return;
@@ -320,43 +349,66 @@
     function goTo(idx) {
       var r = radios(), n = r.length;
       if (n <= 1) return;
-      idx = ((idx % n) + n) % n;            /* wrap both directions */
+      idx = ((idx % n) + n) % n;
       if (!r[idx].checked) r[idx].checked = true;
     }
     function next() { goTo(currentIndex() + 1); }
     function prev() { goTo(currentIndex() - 1); }
 
-    /* ----- autoplay (opt-in via ?autoplay=ms) ----- */
-    var reduceMotion = window.matchMedia &&
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    var autoplayMs = parseInt(qs('autoplay', '0'), 10) || 0;
-    if (autoplayMs && autoplayMs < 1500) autoplayMs = 1500;   /* sane floor */
-    if (reduceMotion) autoplayMs = 0;                         /* don't auto-move for these users */
+    /* autoplay state */
+    var timer = null;
+    var manuallyPaused = false;   /* click of the toggle: sticky across hover/focus */
+    var hovered = false;          /* mouse inside carousel: temporary */
+    var focused = false;          /* keyboard focus inside: temporary */
 
-    var timer = null, paused = false, hovered = false;
-
-    function start() { if (autoplayMs && !paused && !timer) timer = setInterval(next, autoplayMs); }
-    function stop()  { if (timer) { clearInterval(timer); timer = null; } }
-    function pause() { paused = true; stop(); }
-    function resume(){ paused = false; start(); }
-    function restart(){ if (autoplayMs && !paused) { stop(); start(); } }
-
-    carousel.addEventListener('mouseenter', function () { hovered = true;  if (autoplayMs) pause(); });
-    carousel.addEventListener('mouseleave', function () { hovered = false; if (autoplayMs) resume(); });
-
-    if (autoplayMs) {
-      carousel.addEventListener('focusin', pause);
-      carousel.addEventListener('focusout', resume);
-      document.addEventListener('visibilitychange', function () {
-        if (document.hidden) stop(); else if (!paused) start();
-      });
-      start();
+    function shouldRun() {
+      return autoplayMs > 0 && !manuallyPaused && !hovered && !focused && !document.hidden;
+    }
+    function sync() {
+      if (shouldRun() && !timer) {
+        timer = setInterval(next, autoplayMs);
+      } else if (!shouldRun() && timer) {
+        clearInterval(timer); timer = null;
+      }
+    }
+    function restart() {
+      if (!autoplayMs) return;
+      if (timer) { clearInterval(timer); timer = null; }
+      sync();
     }
 
-    /* ----- touch-drag / swipe ----- */
+    carousel.addEventListener('mouseenter', function () { hovered = true;  sync(); });
+    carousel.addEventListener('mouseleave', function () { hovered = false; sync(); });
+
+    if (autoplayMs) {
+      carousel.addEventListener('focusin',  function () { focused = true;  sync(); });
+      carousel.addEventListener('focusout', function () {
+        if (!carousel.contains(document.activeElement)) { focused = false; sync(); }
+      });
+      document.addEventListener('visibilitychange', sync);
+      sync();
+    }
+
+    /* pause/play toggle button */
+    var toggleBtn = carousel.querySelector('.autoplay-toggle');
+    if (toggleBtn && autoplayMs) {
+      toggleBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        manuallyPaused = !manuallyPaused;
+        toggleBtn.innerHTML = manuallyPaused ? ICONS.playSmall : ICONS.pauseSmall;
+        toggleBtn.setAttribute(
+          'aria-label',
+          manuallyPaused ? 'Resume auto-scroll' : 'Pause auto-scroll'
+        );
+        toggleBtn.setAttribute('aria-pressed', manuallyPaused ? 'true' : 'false');
+        sync();
+      });
+    }
+
+    /* touch-drag / swipe */
     var viewport = carousel.querySelector('.viewport');
     var sx = 0, sy = 0, tracking = false;
-    var SWIPE_MIN = 40;   /* px of horizontal travel to count as a swipe */
+    var SWIPE_MIN = 40;
 
     if (viewport) {
       viewport.addEventListener('touchstart', function (e) {
@@ -364,7 +416,7 @@
         sx = e.touches[0].clientX;
         sy = e.touches[0].clientY;
         tracking = true;
-        if (autoplayMs) pause();
+        hovered = true; sync();
       }, { passive: true });
 
       viewport.addEventListener('touchend', function (e) {
@@ -377,16 +429,15 @@
             if (dx < 0) next(); else prev();
           }
         }
-        if (autoplayMs && !hovered) resume();   /* fresh interval after a swipe */
+        hovered = false; restart();
       }, { passive: true });
 
       viewport.addEventListener('touchcancel', function () {
-        tracking = false;
-        if (autoplayMs && !hovered) resume();
+        tracking = false; hovered = false; sync();
       }, { passive: true });
     }
 
-    /* ----- keyboard (left / right), scoped to hover or focus-within so it never hijacks the page ----- */
+    /* keyboard (left / right), scoped so it never hijacks the page */
     document.addEventListener('keydown', function (e) {
       var k = e.key;
       if (k !== 'ArrowLeft' && k !== 'ArrowRight') return;
@@ -433,7 +484,6 @@
 
 </body>
 </html>
-
 
 
 <!-- 
