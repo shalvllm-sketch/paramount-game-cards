@@ -1,4 +1,4 @@
-<!doctype html>
+<!-- <!doctype html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -373,10 +373,10 @@
 </script>
 
 </body>
-</html>
+</html> -->
 
 
-<!-- <!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -405,12 +405,23 @@
    */
   * { box-sizing: border-box; }
   html, body {
-    margin: 0; padding: 0; width: 100%; max-width: 100%;
+    margin: 0; padding: 0; width: 100%; height: 100%; max-width: 100%;
     overflow-x: hidden;
     background: transparent;
     font-family: Arial, 'Segoe UI', Roboto, Helvetica, sans-serif;
   }
-  #carousel-root { width: 100%; }
+  /* If the chat gives us a taller box than our content needs (e.g. a
+     fixed-size attachment container we can't shrink), grow to fill it
+     instead of leaving blank space below. If the box is shorter than
+     our natural size, this has no effect -- we just render at our
+     natural height as before. */
+  #carousel-root { width: 100%; height: 100%; display: flex; flex-direction: column; }
+  .pure-carousel { flex: 1 1 auto; display: flex; flex-direction: column; }
+  .viewport { flex: 1 1 auto; display: flex; flex-direction: column; }
+  .track { flex: 1 1 auto; }
+  .slide { height: auto; }
+  .match-card { flex: 1 1 auto; min-height: 100%; }
+  .card-body { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: center; }
   @keyframes shimmer {
     0%   { transform: translateX(-60%) rotate(8deg); }
     100% { transform: translateX(160%) rotate(8deg); }
@@ -736,17 +747,19 @@
   postHeight();
   window.addEventListener('load', postHeight);
 
-  /* Logos and fonts can finish loading after the first measurement and
-     change the card's height, so keep watching and correct it. */
+  /* Logos and fonts can finish loading a moment after the first
+     measurement and quietly change the card's real height, so we
+     re-check a few times regardless of ResizeObserver support -- not
+     just as a fallback for older browsers. */
   if (window.ResizeObserver) {
     new ResizeObserver(postHeight).observe(document.body);
-  } else {
-    setTimeout(postHeight, 300);
-    setTimeout(postHeight, 1000);
   }
+  setTimeout(postHeight, 150);
+  setTimeout(postHeight, 400);
+  setTimeout(postHeight, 900);
+  setTimeout(postHeight, 1800);
 })();
 </script>
 
 </body>
 </html>
- -->
