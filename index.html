@@ -358,19 +358,23 @@
   postHeight();
   window.addEventListener('load', postHeight);
 
-  /* Logos and fonts can finish loading after the first measurement and
-     change the card's height, so keep watching and correct it. */
+  /* Logos and fonts can finish loading a moment after the first
+     measurement and quietly change the card's real height, so we
+     re-check a few times regardless of ResizeObserver support -- not
+     just as a fallback for older browsers. */
   if (window.ResizeObserver) {
     new ResizeObserver(postHeight).observe(document.body);
-  } else {
-    setTimeout(postHeight, 300);
-    setTimeout(postHeight, 1000);
   }
+  setTimeout(postHeight, 150);
+  setTimeout(postHeight, 400);
+  setTimeout(postHeight, 900);
+  setTimeout(postHeight, 1800);
 })();
 </script>
 
 </body>
 </html>
+
 
 <!-- <!doctype html>
 <html lang="en">
@@ -633,6 +637,44 @@
       '</div>';
   }
 
+  /* ---- de-duplicate: the chat may render this exact URL 2-3 times in
+     the same reply (one per generated candidate response). Copies can
+     appear staggered by several seconds, not instantly, if the chat
+     reveals message bubbles one at a time. All copies are same-origin,
+     so sessionStorage is shared between them. The first one to run
+     "claims" this URL for a window generous enough to cover that
+     stagger; later copies within the window render nothing instead of
+     a stacked duplicate card. A later, genuinely new request for the
+     exact same game (a different conversation turn) is extremely
+     unlikely to land within this same window. ---- */
+  var isDuplicate = false;
+  try {
+    var key = 'nfl-card-claim:' + location.search;
+    var now = Date.now();
+    var claimed = sessionStorage.getItem(key);
+    if (claimed && now - parseInt(claimed, 10) < 20000) {
+      isDuplicate = true;
+    } else {
+      sessionStorage.setItem(key, String(now));
+    }
+  } catch (e) { /* storage unavailable -- render normally, better a
+                   visible duplicate than a silently broken card */ }
+
+  if (isDuplicate) {
+    /* A sibling iframe already claimed this exact card. Render
+       nothing AND tell the parent to collapse this iframe to zero
+       height -- otherwise it sits there as an empty blank box the
+       same size the card would have been. */
+    document.body.style.minHeight = '0';
+    try {
+      window.parent.postMessage(
+        { eventType: 'UPDATE_PARENT_WINDOW_STYLE', data: { height: '0px' } },
+        '*'
+      );
+    } catch (e) {}
+    return;
+  }
+
   /* ---- read the cards out of the query string ---- */
   var cardsCount = Math.min(3, Math.max(1, parseInt(qs('cards', '1'), 10) || 1));
 
@@ -706,4 +748,5 @@
 </script>
 
 </body>
-</html> -->
+</html>
+ -->
