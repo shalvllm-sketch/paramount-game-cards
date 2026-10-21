@@ -682,7 +682,9 @@
 
   var lastSent = 0;
   function postHeight() {
-    var h = Math.ceil(document.body.getBoundingClientRect().height);
+    var root = document.getElementById('carousel-root');
+    if (!root) return;
+    var h = Math.ceil(root.getBoundingClientRect().height);
     if (!h || Math.abs(h - lastSent) < 2) return;
     lastSent = h;
     try {
@@ -701,7 +703,7 @@
   window.addEventListener('load', postHeight);
 
   if (window.ResizeObserver) {
-    new ResizeObserver(postHeight).observe(document.body);
+    new ResizeObserver(postHeight).observe(document.getElementById('carousel-root'));
   }
   setTimeout(postHeight, 150);
   setTimeout(postHeight, 400);
