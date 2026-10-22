@@ -4,21 +4,27 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DraftKings Jackpocket Face-Off</title>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;800&family=Teko:wght@700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Teko:wght@600;700&display=swap" rel="stylesheet">
 <style>
   * { box-sizing: border-box; }
   
   :root {
     --dk-green: #53b300;
     --dk-green-bright: #71dd00;
+    --away-cyan: #00e5ff;
+    --jp-gold: #ffb700;
+    --card-bg: #0f141e;
+    --card-border: rgba(255, 255, 255, 0.1);
   }
 
   html, body {
-    margin: 0; padding: 0; width: 100%;
-    font-family: 'Montserrat', sans-serif;
-    color: #fff;
-    background: transparent;
+    margin: 0; padding: 0; width: 100%; max-width: 100%;
     overflow-x: hidden;
+    background: transparent;
+    font-family: 'Montserrat', sans-serif;
+    color: #ffffff;
   }
 
   #carousel-root {
@@ -26,33 +32,37 @@
     max-width: 480px;
     margin: 0 auto;
     padding: 10px;
+    overflow: hidden;
   }
 
-  .pure-carousel { display: flex; flex-direction: column; width: 100%; }
+  .pure-carousel { position: relative; width: 100%; display: flex; flex-direction: column; }
   .radio-nav { display: none; }
   .viewport { overflow: hidden; border-radius: 16px; width: 100%; }
-  .track { display: flex; transition: transform 0.4s ease; }
+  .track { display: flex; transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); }
   .slide { padding: 0; height: 100%; flex-shrink: 0; }
 
   .match-card {
-    background: #0f141e;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
     border-radius: 16px;
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    max-height: 100%;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   }
 
   .card-header {
     background: linear-gradient(135deg, #131b29, #0d121c);
-    padding: 12px 16px 16px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 14px 16px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   }
 
   .header-top-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 8px;
   }
 
   .brand-badge {
@@ -60,19 +70,16 @@
     align-items: center;
     gap: 8px;
     background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     padding: 6px 12px;
     border-radius: 20px;
   }
 
   .brand-badge img {
-    height: 16px;
+    height: 18px;
+    width: 18px;
     object-fit: contain;
-  }
-
-  /* Turns the black DK logo pure white */
-  .brand-badge img.dk-logo {
-    filter: brightness(0) invert(1);
-    height: 14px;
+    border-radius: 4px;
   }
 
   .brand-title {
@@ -83,18 +90,24 @@
     line-height: 1;
     margin-top: 2px;
   }
-  .brand-title span { color: var(--dk-green-bright); }
+
+  .brand-title span {
+    color: var(--dk-green-bright);
+    margin-left: 3px;
+  }
 
   .status-chip {
     background: rgba(83, 179, 0, 0.15);
     border: 1px solid var(--dk-green);
     color: var(--dk-green-bright);
+    border-radius: 20px;
     padding: 3px 10px;
-    border-radius: 12px;
     font-size: 0.65rem;
     font-weight: 800;
+    letter-spacing: 0.5px;
     text-transform: uppercase;
   }
+
   .status-chip.live {
     background: rgba(255, 59, 48, 0.15);
     border-color: #ff3b30;
@@ -107,93 +120,153 @@
     align-items: center;
     gap: 12px;
     margin-top: 16px;
+  }
+
+  .team-block {
     text-align: center;
+    min-width: 0;
   }
 
   .team-logo-ring {
-    width: 56px; height: 56px;
-    margin: 0 auto 6px;
-    background: #1a2233;
+    width: clamp(50px, 14vw, 60px);
+    height: clamp(50px, 14vw, 60px);
+    margin: 0 auto 8px;
     border-radius: 50%;
-    padding: 8px;
+    background: #182030;
+    border: 2px solid rgba(255, 255, 255, 0.1);
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 2px solid rgba(255, 255, 255, 0.1);
+    padding: 8px;
   }
-  .team-logo-ring img { max-width: 100%; max-height: 100%; }
+
+  .team-block.away .team-logo-ring { border-color: var(--away-cyan); }
+  .team-block.home .team-logo-ring { border-color: var(--jp-gold); }
+
+  .team-logo-ring img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+
+  .team-logo-ring.initials {
+    font-family: 'Teko', sans-serif;
+    font-weight: 700;
+    font-size: 1.4rem;
+  }
 
   .team-name {
-    font-size: 0.85rem;
+    font-size: clamp(0.75rem, 2.5vw, 0.9rem);
     font-weight: 800;
+    line-height: 1.1;
     text-transform: uppercase;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
-  .team-tag { font-size: 0.65rem; color: #888; font-weight: 600; margin-top: 2px; }
-  
+  .team-tag {
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.5);
+    margin-top: 3px;
+    letter-spacing: 0.5px;
+  }
+
   .vs-badge {
-    background: #232c3d;
+    background: #1e2738;
     color: var(--dk-green-bright);
     font-family: 'Teko', sans-serif;
     font-size: 1.1rem;
+    font-weight: 700;
     padding: 2px 10px;
-    border-radius: 4px;
+    border-radius: 6px;
     border: 1px solid var(--dk-green);
   }
 
-  .card-body { padding: 16px; }
+  .card-body {
+    padding: 16px;
+    flex: 1 1 auto;
+  }
 
   .info-grid {
     background: rgba(255, 255, 255, 0.03);
-    padding: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: 8px;
-    margin-bottom: 12px;
-    font-size: 0.75rem;
+    padding: 10px 12px;
+    margin-bottom: 14px;
   }
 
   .info-row {
     display: flex;
+    align-items: center;
     justify-content: space-between;
-    margin: 4px 0;
+    font-size: 0.75rem;
+    margin-bottom: 6px;
   }
-  .info-row .label { color: #aaa; }
-  .info-row .val { font-weight: 800; }
+  .info-row:last-child { margin-bottom: 0; }
+
+  .info-left {
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .info-left svg { width: 14px; height: 14px; stroke: var(--dk-green-bright); }
+
+  .info-value {
+    font-weight: 700;
+    color: #ffffff;
+  }
 
   .cta-btn {
-    display: block;
     width: 100%;
     background: var(--dk-green-bright);
-    color: #000;
-    text-align: center;
-    padding: 12px;
+    color: #000000;
+    border: none;
     border-radius: 8px;
+    padding: 12px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.85rem;
     font-weight: 800;
     text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
     text-decoration: none;
-    font-size: 0.85rem;
+    transition: background 0.2s;
   }
+  .cta-btn:hover { background: var(--dk-green); }
+  .cta-btn svg { width: 16px; height: 16px; fill: #000000; }
 
-  .disclaimer {
+  .footer-sub {
     text-align: center;
-    font-size: 0.6rem;
-    color: #666;
     margin-top: 10px;
+    font-size: 0.6rem;
+    color: rgba(255, 255, 255, 0.4);
+    line-height: 1.4;
   }
+  .footer-sub b { color: var(--dk-green-bright); }
 
   .nav-bar {
     display: flex;
+    align-items: center;
     justify-content: center;
-    gap: 8px;
-    padding: 12px 0 0;
+    gap: 6px;
+    padding: 12px 0 4px;
   }
   .dot {
-    width: 8px; height: 8px;
+    display: block;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.2);
     cursor: pointer;
+    transition: all 0.3s ease;
   }
 </style>
 </head>
@@ -203,105 +276,226 @@
 
 <script>
 (function () {
-  var params = new URLSearchParams(window.location.search);
-  function qs(name, fallback) { return params.get(name) || fallback; }
-  function escapeHtml(val) { return String(val).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
-  
-  // Real Image URLs for Branding
-  var DK_LOGO = 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/DraftKings_logo.png/640px-DraftKings_logo.png';
-  var JP_LOGO = 'https://is1-ssl.mzstatic.com/image/thumb/Purple116/v4/39/9f/bc/399fbc2a-c66c-5c2e-b419-d46fa1027dd6/AppIcon-1x_U007emarketing-0-7-0-85-220.png/1200x630wa.png'; 
-  
-  var cardsCount = Math.min(3, Math.max(1, parseInt(qs('cards', '1')) || 1));
-  var games = [];
+  'use strict';
 
-  for (var i = 1; i <= cardsCount; i++) {
-    games.push({
-      status: qs('status_' + i, 'UPCOMING'),
-      venue: qs('venue_' + i, ''),
-      broadcaster: qs('network_' + i, ''),
-      watchUrl: qs('link_' + i, 'https://draftkings.com'),
-      away: { name: qs('team1_' + i, 'AWAY'), logo: qs('logo1_' + i, '') },
-      home: { name: qs('team2_' + i, 'HOME'), logo: qs('logo2_' + i, '') }
-    });
+  var params = new URLSearchParams(window.location.search);
+
+  function qs(name, fallback) {
+    var v = params.get(name);
+    return (v === null || v.trim() === '') ? fallback : v.trim();
+  }
+
+  function escapeHtml(value) {
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  function safeLink(url) {
+    return (url && /^https?:\/\//i.test(url)) ? url : '';
+  }
+
+  // 100% Reliable Transparent Image URLs via Google Favicon API
+  var DK_LOGO = 'https://www.google.com/s2/favicons?domain=draftkings.com&sz=128';
+  var JACKPOCKET_LOGO = 'https://www.google.com/s2/favicons?domain=jackpocket.com&sz=128';
+  var DEFAULT_LINK = 'https://lottery.jackpocket.com/en/';
+
+  var ICONS = {
+    location: '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>',
+    tv: '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>',
+    play: '<svg viewBox="0 0 24 24"><polygon points="6 4 20 12 6 20"></polygon></svg>'
+  };
+
+  function teamLogoHTML(team) {
+    if (team.logo) {
+      return '<img src="' + escapeHtml(team.logo) + '" alt="' + escapeHtml(team.name) + ' logo" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'block\';">' +
+             '<span style="display:none;" class="initials">' + escapeHtml(String(team.name || '').slice(0, 2).toUpperCase()) + '</span>';
+    }
+    return '<span class="initials">' + escapeHtml(String(team.name || 'TBD').slice(0, 2).toUpperCase()) + '</span>';
+  }
+
+  function teamBlockHTML(team, side, label) {
+    return '<div class="team-block ' + side + '">' +
+      '<div class="team-logo-ring">' + teamLogoHTML(team) + '</div>' +
+      '<div class="team-name" title="' + escapeHtml(team.name) + '">' + escapeHtml(team.name || 'TBD') + '</div>' +
+      '<div class="team-tag">' + label + '</div>' +
+      '</div>';
   }
 
   function slideHTML(game) {
-    var isLive = game.status.toUpperCase().includes('LIVE');
+    var isLive = (game.status || '').toUpperCase().indexOf('LIVE') !== -1;
     var rows = '';
-    if (game.venue) rows += '<div class="info-row"><span class="label">Venue</span><span class="val">' + escapeHtml(game.venue) + '</span></div>';
-    if (game.broadcaster) rows += '<div class="info-row"><span class="label">Network</span><span class="val">' + escapeHtml(game.broadcaster) + '</span></div>';
-
-    var awayLogo = game.away.logo ? '<img src="' + escapeHtml(game.away.logo) + '">' : escapeHtml(game.away.name.slice(0,2));
-    var homeLogo = game.home.logo ? '<img src="' + escapeHtml(game.home.logo) + '">' : escapeHtml(game.home.name.slice(0,2));
+    
+    if (game.venue) {
+      rows += '<div class="info-row"><div class="info-left">' + ICONS.location + ' Venue</div>' +
+              '<div class="info-value">' + escapeHtml(game.venue) + '</div></div>';
+    }
+    if (game.broadcaster) {
+      rows += '<div class="info-row"><div class="info-left">' + ICONS.tv + ' Network</div>' +
+              '<div class="info-value">' + escapeHtml(game.broadcaster) + '</div></div>';
+    }
 
     return '<div class="slide"><div class="match-card">' +
       '<div class="card-header">' +
         '<div class="header-top-row">' +
           '<div class="brand-badge">' +
-            '<img src="' + DK_LOGO + '" class="dk-logo" alt="DK">' +
-            '<img src="' + JP_LOGO + '" alt="JP">' +
+            '<img src="' + DK_LOGO + '" alt="DraftKings">' +
+            '<img src="' + JACKPOCKET_LOGO + '" alt="Jackpocket">' +
             '<span class="brand-title">DRAFTKINGS <span>JACKPOCKET</span></span>' +
           '</div>' +
-          '<div class="status-chip ' + (isLive ? 'live' : '') + '">' + escapeHtml(game.status) + '</div>' +
+          '<div class="status-chip' + (isLive ? ' live' : '') + '">' + escapeHtml(game.status) + '</div>' +
         '</div>' +
         '<div class="matchup">' +
-          '<div class="team-block"><div class="team-logo-ring">' + awayLogo + '</div><div class="team-name">' + escapeHtml(game.away.name) + '</div><div class="team-tag">AWAY</div></div>' +
+          teamBlockHTML(game.away, 'away', 'AWAY') +
           '<div class="vs-badge">VS</div>' +
-          '<div class="team-block"><div class="team-logo-ring">' + homeLogo + '</div><div class="team-name">' + escapeHtml(game.home.name) + '</div><div class="team-tag">HOME</div></div>' +
+          teamBlockHTML(game.home, 'home', 'HOME') +
         '</div>' +
       '</div>' +
       '<div class="card-body">' +
         (rows ? '<div class="info-grid">' + rows + '</div>' : '') +
-        '<a class="cta-btn" href="' + escapeHtml(game.watchUrl) + '" target="_blank">View on DraftKings</a>' +
-        '<div class="disclaimer">21+. Physically present in legal state. Gambling problem? Call 1-800-GAMBLER.</div>' +
+        '<a class="cta-btn" href="' + escapeHtml(game.watchUrl) + '" target="_blank" rel="noopener noreferrer">' +
+          ICONS.play + ' View on DraftKings' +
+        '</a>' +
+        '<div class="footer-sub">' + (game.when ? escapeHtml(game.when) + ' &bull; ' : '') + 'Powered by <b>Jackpocket</b><br>21+. Physically present in legal state. Gambling problem? Call 1-800-GAMBLER.</div>' +
       '</div>' +
     '</div></div>';
   }
 
-  function buildCSS(n) {
+  function buildDynamicCSS(n) {
     var css = '.track { width: calc(' + n + ' * 100%); } .slide { flex: 0 0 calc(100% / ' + n + '); } ';
     for (var i = 0; i < n; i++) {
       css += '#g' + (i + 1) + ':checked ~ .viewport .track { transform: translateX(calc(-100% / ' + n + ' * ' + i + ')); } ';
-      css += '#g' + (i + 1) + ':checked ~ .nav-bar label[for="g' + (i + 1) + '"] { background: var(--dk-green-bright); width: 16px; border-radius: 8px; } ';
+      css += '#g' + (i + 1) + ':checked ~ .nav-bar label[for="g' + (i + 1) + '"] { background: var(--dk-green-bright); width: 20px; border-radius: 8px; } ';
     }
     return css;
   }
 
   function buildRadios(n) {
-    var r = '';
-    for (var i = 1; i <= n; i++) r += '<input type="radio" name="g" id="g' + i + '" class="radio-nav" ' + (i===1?'checked':'') + '>';
-    return r;
+    var out = '';
+    for (var i = 0; i < n; i++) {
+      out += '<input type="radio" name="game" id="g' + (i + 1) + '" class="radio-nav"' + (i === 0 ? ' checked' : '') + '>';
+    }
+    return out;
   }
-  function buildDots(n) {
+
+  function buildNavBar(n) {
     if (n <= 1) return '';
-    var d = '<div class="nav-bar">';
-    for (var i = 1; i <= n; i++) d += '<label for="g' + i + '" class="dot"></label>';
-    return d + '</div>';
+    var dots = '<div class="nav-bar">';
+    for (var k = 0; k < n; k++) {
+      dots += '<label for="g' + (k + 1) + '" class="dot" aria-label="Go to game ' + (k + 1) + '"></label>';
+    }
+    dots += '</div>';
+    return dots;
   }
 
-  var st = document.createElement('style');
-  st.innerHTML = buildCSS(cardsCount);
-  document.head.appendChild(st);
+  var isDuplicate = false;
+  try {
+    var key = 'dk-card-claim:' + location.search;
+    var now = Date.now();
+    var claimed = sessionStorage.getItem(key);
+    if (claimed && now - parseInt(claimed, 10) < 20000) {
+      isDuplicate = true;
+    } else {
+      sessionStorage.setItem(key, String(now));
+    }
+  } catch (e) {}
 
-  document.getElementById('carousel-root').innerHTML = 
-    '<div class="pure-carousel">' + buildRadios(cardsCount) + 
-    '<div class="viewport"><div class="track">' + games.map(slideHTML).join('') + '</div></div>' + 
-    buildDots(cardsCount) + '</div>';
+  if (isDuplicate) {
+    document.body.style.minHeight = '0';
+    try {
+      window.parent.postMessage({ eventType: 'UPDATE_PARENT_WINDOW_STYLE', data: { height: '0px' } }, '*');
+    } catch (e) {}
+    return;
+  }
 
-  // Dynamic Height for Netomi Widget
-  var lastH = 0;
+  var cardsCount = Math.min(3, Math.max(1, parseInt(qs('cards', '1'), 10) || 1));
+  var games = [];
+  
+  for (var i = 1; i <= cardsCount; i++) {
+    var when = [qs('day_' + i, ''), qs('date_' + i, ''), qs('time_' + i, '')].filter(Boolean).join(' ');
+
+    games.push({
+      when: when,
+      status: qs('status_' + i, 'UPCOMING'),
+      venue: qs('venue_' + i, ''),
+      broadcaster: qs('network_' + i, ''),
+      watchUrl: safeLink(qs('link_' + i, '')) || safeLink(qs('watchUrl_' + i, '')) || DEFAULT_LINK,
+      away: { name: qs('team1_' + i, 'AWAY TEAM'), logo: qs('logo1_' + i, null) },
+      home: { name: qs('team2_' + i, 'HOME TEAM'), logo: qs('logo2_' + i, null) }
+    });
+  }
+
+  var styleTag = document.createElement('style');
+  styleTag.textContent = buildDynamicCSS(cardsCount);
+  document.head.appendChild(styleTag);
+
+  document.getElementById('carousel-root').innerHTML =
+    '<div class="pure-carousel">' + buildRadios(cardsCount) +
+    '<div class="viewport"><div class="track">' + games.map(slideHTML).join('') + '</div></div>' +
+    buildNavBar(cardsCount) + '</div>';
+
+  if (cardsCount > 1) {
+    var currentCardIndex = 0;
+    var autoScrollInterval;
+
+    function nextSlide() {
+      currentCardIndex = (currentCardIndex + 1) % cardsCount;
+      var radio = document.getElementById('g' + (currentCardIndex + 1));
+      if (radio) radio.checked = true;
+    }
+
+    function startAutoScroll() {
+      autoScrollInterval = setInterval(nextSlide, 3500); 
+    }
+
+    function stopAutoScroll() {
+      clearInterval(autoScrollInterval);
+    }
+
+    startAutoScroll();
+
+    var rootElement = document.getElementById('carousel-root');
+    rootElement.addEventListener('mouseenter', stopAutoScroll);
+    rootElement.addEventListener('mouseleave', startAutoScroll);
+    rootElement.addEventListener('touchstart', stopAutoScroll);
+
+    var radios = document.querySelectorAll('.radio-nav');
+    radios.forEach(function(radio, index) {
+      radio.addEventListener('change', function() {
+        currentCardIndex = index;
+      });
+    });
+  }
+
+  var lastSent = 0;
   function postHeight() {
     var root = document.getElementById('carousel-root');
-    if(!root) return;
+    if (!root) return;
     var h = Math.ceil(root.getBoundingClientRect().height);
-    if(h && Math.abs(h - lastH) > 2) {
-      lastH = h;
-      try { window.parent.postMessage({ eventType: 'UPDATE_PARENT_WINDOW_STYLE', data: { height: h + 'px' } }, '*'); } catch(e){}
-    }
+    if (!h || Math.abs(h - lastSent) < 2) return;
+    lastSent = h;
+    try {
+      window.parent.postMessage(
+        { eventType: 'UPDATE_PARENT_WINDOW_STYLE', data: { height: h + 'px' } },
+        '*'
+      );
+    } catch (e) {}
   }
+
+  try {
+    window.parent.postMessage({ eventType: 'DOCUMENT_LOADED', data: {} }, '*');
+  } catch (e) {}
+
+  postHeight();
   window.addEventListener('load', postHeight);
-  if(window.ResizeObserver) new ResizeObserver(postHeight).observe(document.getElementById('carousel-root'));
-  setTimeout(postHeight, 300);
+
+  if (window.ResizeObserver) {
+    new ResizeObserver(postHeight).observe(document.getElementById('carousel-root'));
+  }
+  setTimeout(postHeight, 150);
+  setTimeout(postHeight, 400);
+  setTimeout(postHeight, 900);
+  setTimeout(postHeight, 1800);
 })();
 </script>
 
