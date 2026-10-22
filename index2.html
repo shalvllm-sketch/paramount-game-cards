@@ -3,16 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jackpocket Sports Face-Off Carousel</title>
+<title>DraftKings Jackpocket Face-Off</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Teko:wght@600;700&display=swap" rel="stylesheet">
 <style>
-  /* 
-   * QUERY PARAMS SUPPORT (per card i, 1-based, up to `cards`):
-   *   cards, team1_i, team2_i, logo1_i, logo2_i, day_i, date_i, time_i,
-   *   venue_i, network_i, score_i, score1_i, score2_i, status_i, link_i
-   */
   * { box-sizing: border-box; }
   
   :root {
@@ -41,9 +36,9 @@
     max-width: 480px;
     margin: 0 auto;
     padding: 10px;
+    overflow: hidden;
   }
 
-  /* Keyframes */
   @keyframes stadiumShimmer {
     0% { transform: translateX(-150%) skewX(-25deg); }
     100% { transform: translateX(250%) skewX(-25deg); }
@@ -59,19 +54,12 @@
     50% { box-shadow: 0 6px 28px rgba(113, 221, 0, 0.7); transform: translateY(-1px); }
   }
 
-  @keyframes ringGlow {
-    0%, 100% { filter: drop-shadow(0 0 6px var(--dk-green-glow)); }
-    50% { filter: drop-shadow(0 0 14px var(--dk-green-bright)); }
-  }
-
-  /* Carousel Base */
-  .pure-carousel { position: relative; width: 100%; }
+  .pure-carousel { position: relative; width: 100%; display: flex; flex-direction: column; }
   .radio-nav { display: none; }
   .viewport { overflow: hidden; border-radius: 20px; width: 100%; }
   .track { display: flex; transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1); }
   .slide { padding: 0; height: 100%; flex-shrink: 0; }
 
-  /* Match Card Styling */
   .match-card {
     background: linear-gradient(180deg, #161e2e 0%, #0c1018 100%);
     border: 1px solid var(--card-border);
@@ -81,9 +69,9 @@
     display: flex;
     flex-direction: column;
     position: relative;
+    max-height: 100%;
   }
 
-  /* Stadium Grid Background Effect */
   .match-card::before {
     content: '';
     position: absolute;
@@ -96,7 +84,6 @@
     pointer-events: none;
   }
 
-  /* Header */
   .card-header {
     position: relative;
     overflow: hidden;
@@ -105,7 +92,6 @@
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   }
 
-  /* Shimmer beam */
   .card-header::after {
     content: '';
     position: absolute;
@@ -135,7 +121,7 @@
     backdrop-filter: blur(8px);
   }
 
-  .brand-badge img {
+  .brand-badge img, .brand-badge svg {
     width: 18px;
     height: 18px;
     border-radius: 4px;
@@ -155,14 +141,6 @@
   .brand-accent {
     color: var(--dk-green-bright);
     font-weight: 800;
-  }
-
-  .header-date {
-    font-size: 0.7rem;
-    color: rgba(255, 255, 255, 0.7);
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
   }
 
   .status-chip {
@@ -197,7 +175,6 @@
     animation: pulseLive 1.4s infinite ease-in-out;
   }
 
-  /* Matchup Grid */
   .matchup {
     position: relative;
     z-index: 2;
@@ -288,7 +265,6 @@
     letter-spacing: 1px;
   }
 
-  /* Metallic angular VS Badge */
   .vs-badge-wrap {
     display: flex;
     flex-direction: column;
@@ -315,13 +291,13 @@
     transform: skewX(12deg);
   }
 
-  /* Body Content */
   .card-body {
     padding: 16px;
     position: relative;
     z-index: 2;
     background: rgba(12, 16, 24, 0.6);
     backdrop-filter: blur(10px);
+    flex: 1 1 auto;
   }
 
   .info-grid {
@@ -374,7 +350,6 @@
     text-transform: uppercase;
   }
 
-  /* Main CTA Button */
   .cta-btn {
     width: 100%;
     border: none;
@@ -421,13 +396,13 @@
     color: var(--dk-green-bright);
   }
 
-  /* Carousel Navigation */
   .nav-bar {
+    flex: 0 0 auto;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 16px;
-    margin-top: 12px;
+    padding: 8px 0;
   }
 
   .arrow-slot { width: 32px; height: 32px; }
@@ -505,6 +480,7 @@
   }
 
   var JACKPOCKET_LOGO = 'https://is1-ssl.mzstatic.com/image/thumb/Purple116/v4/39/9f/bc/399fbc2a-c66c-5c2e-b419-d46fa1027dd6/AppIcon-1x_U007emarketing-0-7-0-85-220.png/1200x630wa.png';
+  var DK_CROWN_SVG = '<svg viewBox="0 0 24 24" fill="#71dd00"><path d="M2.5 9.5l3 5.5 6.5-11 6.5 11 3-5.5-2 11.5H4.5z"/></svg>';
   var DEFAULT_LINK = 'https://lottery.jackpocket.com/en/';
 
   var ICONS = {
@@ -553,8 +529,9 @@
       '<div class="card-header">' +
         '<div class="header-top-row">' +
           '<div class="brand-badge">' +
+            DK_CROWN_SVG +
             '<img src="' + JACKPOCKET_LOGO + '" alt="Jackpocket" onerror="this.style.display=\'none\'">' +
-            '<span class="brand-title">JACKPOCKET <span class="brand-accent">SPORTS</span></span>' +
+            '<span class="brand-title">DRAFTKINGS <span class="brand-accent">JACKPOCKET</span></span>' +
           '</div>' +
           '<div class="status-chip' + (isLive ? ' live' : '') + '"><span class="dot"></span><span>' + escapeHtml(game.status) + '</span></div>' +
         '</div>' +
@@ -569,7 +546,7 @@
         '<a class="cta-btn" href="' + escapeHtml(game.watchUrl) + '" target="_blank" rel="noopener noreferrer">' +
           ICONS.play + ' Watch / Place Bets' +
         '</a>' +
-        '<div class="footer-sub">' + (game.when ? escapeHtml(game.when) + ' &bull; ' : '') + 'Powered by <b>Jackpocket</b> 21+. Physically present in a legal state. Gambling problem? Call 1-800-GAMBLER.</div>' +
+        '<div class="footer-sub">' + (game.when ? escapeHtml(game.when) + ' &bull; ' : '') + 'Powered by <b>Jackpocket</b><br>21+. Physically present in a legal state.<br>Gambling problem? Call 1-800-GAMBLER.</div>' +
       '</div>' +
     '</div></div>';
   }
@@ -616,14 +593,34 @@
       '</div>';
   }
 
+  // De-duplicate logic to prevent stacked cards in chat widget
+  var isDuplicate = false;
+  try {
+    var key = 'dk-card-claim:' + location.search;
+    var now = Date.now();
+    var claimed = sessionStorage.getItem(key);
+    if (claimed && now - parseInt(claimed, 10) < 20000) {
+      isDuplicate = true;
+    } else {
+      sessionStorage.setItem(key, String(now));
+    }
+  } catch (e) {}
+
+  if (isDuplicate) {
+    document.body.style.minHeight = '0';
+    try {
+      window.parent.postMessage({ eventType: 'UPDATE_PARENT_WINDOW_STYLE', data: { height: '0px' } }, '*');
+    } catch (e) {}
+    return;
+  }
+
   /* Parse query parameters */
   var cardsCount = Math.min(3, Math.max(1, parseInt(qs('cards', '1'), 10) || 1));
-
   var games = [];
+  
   for (var i = 1; i <= cardsCount; i++) {
     var sharedScore = qs('score_' + i, '');
-    var when = [qs('day_' + i, ''), qs('date_' + i, ''), qs('time_' + i, '')]
-      .filter(Boolean).join(' ');
+    var when = [qs('day_' + i, ''), qs('date_' + i, ''), qs('time_' + i, '')].filter(Boolean).join(' ');
 
     games.push({
       when: when,
@@ -644,6 +641,73 @@
     '<div class="pure-carousel">' + buildRadios(cardsCount) +
     '<div class="viewport"><div class="track">' + games.map(slideHTML).join('') + '</div></div>' +
     buildNavBar(cardsCount) + '</div>';
+
+  /* Auto-Scroll Logic */
+  if (cardsCount > 1) {
+    var currentCardIndex = 0;
+    var autoScrollInterval;
+
+    function nextSlide() {
+      currentCardIndex = (currentCardIndex + 1) % cardsCount;
+      var radio = document.getElementById('g' + (currentCardIndex + 1));
+      if (radio) radio.checked = true;
+    }
+
+    function startAutoScroll() {
+      autoScrollInterval = setInterval(nextSlide, 3500); // 3.5 seconds per card
+    }
+
+    function stopAutoScroll() {
+      clearInterval(autoScrollInterval);
+    }
+
+    startAutoScroll();
+
+    // Pause auto-scroll on interaction so user can read/click CTA
+    var rootElement = document.getElementById('carousel-root');
+    rootElement.addEventListener('mouseenter', stopAutoScroll);
+    rootElement.addEventListener('mouseleave', startAutoScroll);
+    rootElement.addEventListener('touchstart', stopAutoScroll);
+
+    // Keep JS index synced if user clicks dots manually
+    var radios = document.querySelectorAll('.radio-nav');
+    radios.forEach(function(radio, index) {
+      radio.addEventListener('change', function() {
+        currentCardIndex = index;
+      });
+    });
+  }
+
+  /* Dynamic Resizing Logic for Netomi Widget */
+  var lastSent = 0;
+  function postHeight() {
+    var root = document.getElementById('carousel-root');
+    if (!root) return;
+    var h = Math.ceil(root.getBoundingClientRect().height);
+    if (!h || Math.abs(h - lastSent) < 2) return;
+    lastSent = h;
+    try {
+      window.parent.postMessage(
+        { eventType: 'UPDATE_PARENT_WINDOW_STYLE', data: { height: h + 'px' } },
+        '*'
+      );
+    } catch (e) {}
+  }
+
+  try {
+    window.parent.postMessage({ eventType: 'DOCUMENT_LOADED', data: {} }, '*');
+  } catch (e) {}
+
+  postHeight();
+  window.addEventListener('load', postHeight);
+
+  if (window.ResizeObserver) {
+    new ResizeObserver(postHeight).observe(document.getElementById('carousel-root'));
+  }
+  setTimeout(postHeight, 150);
+  setTimeout(postHeight, 400);
+  setTimeout(postHeight, 900);
+  setTimeout(postHeight, 1800);
 })();
 </script>
 
