@@ -68,32 +68,18 @@
   .brand-badge {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
     background: rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    padding: 6px 12px;
+    padding: 8px 14px;
     border-radius: 20px;
   }
 
+  /* Both official logos are fetched and turned pure white */
   .brand-badge img {
-    height: 18px;
-    width: 18px;
+    height: 14px;
     object-fit: contain;
-    border-radius: 4px;
-  }
-
-  .brand-title {
-    font-family: 'Teko', sans-serif;
-    font-size: 1.1rem;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    line-height: 1;
-    margin-top: 2px;
-  }
-
-  .brand-title span {
-    color: var(--dk-green-bright);
-    margin-left: 3px;
+    filter: brightness(0) invert(1);
   }
 
   .status-chip {
@@ -101,7 +87,7 @@
     border: 1px solid var(--dk-green);
     color: var(--dk-green-bright);
     border-radius: 20px;
-    padding: 3px 10px;
+    padding: 4px 10px;
     font-size: 0.65rem;
     font-weight: 800;
     letter-spacing: 0.5px;
@@ -295,9 +281,9 @@
     return (url && /^https?:\/\//i.test(url)) ? url : '';
   }
 
-  // 100% Reliable Transparent Image URLs via Google Favicon API
-  var DK_LOGO = 'https://www.google.com/s2/favicons?domain=draftkings.com&sz=128';
-  var JACKPOCKET_LOGO = 'https://www.google.com/s2/favicons?domain=jackpocket.com&sz=128';
+  // Authentic transparent PNG URLs
+  var DK_LOGO = 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/DraftKings_logo.png/320px-DraftKings_logo.png';
+  var JACKPOCKET_LOGO = 'https://seeklogo.com/images/J/jackpocket-com-lottery-logo-DF2DD4DF0E-seeklogo.com.png';
   var DEFAULT_LINK = 'https://lottery.jackpocket.com/en/';
 
   var ICONS = {
@@ -341,7 +327,6 @@
           '<div class="brand-badge">' +
             '<img src="' + DK_LOGO + '" alt="DraftKings">' +
             '<img src="' + JACKPOCKET_LOGO + '" alt="Jackpocket">' +
-            '<span class="brand-title">DRAFTKINGS <span>JACKPOCKET</span></span>' +
           '</div>' +
           '<div class="status-chip' + (isLive ? ' live' : '') + '">' + escapeHtml(game.status) + '</div>' +
         '</div>' +
