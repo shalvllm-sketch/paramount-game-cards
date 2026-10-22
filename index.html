@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -6,12 +7,16 @@
 <title>NFL on Paramount+ Carousel</title>
 <style>
   * { box-sizing: border-box; }
+
   html, body {
-    margin: 0; padding: 0; width: 100%;
+    margin: 0;
+    padding: 0;
+    width: 100%;
     overflow-x: hidden;
     background: transparent;
     font-family: Arial, 'Segoe UI', Roboto, Helvetica, sans-serif;
   }
+
   #carousel-root { width: 100%; overflow: hidden; }
   .pure-carousel { display: flex; flex-direction: column; }
   .viewport { flex: 1 1 auto; min-height: 0; }
@@ -19,112 +24,387 @@
   .slide { height: 100%; }
   .match-card { max-height: 100%; }
   .card-body { flex: 1 1 auto; min-height: 0; }
-  .card-body { display: flex; flex-direction: column; justify-content: center; gap: 6px; }
+  .card-body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+  }
+
   @keyframes shimmer {
-    0%   { transform: translateX(-60%) rotate(8deg); }
+    0% { transform: translateX(-60%) rotate(8deg); }
     100% { transform: translateX(160%) rotate(8deg); }
   }
+
   @keyframes pulseDot {
     0%, 100% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.55); }
-    50%      { box-shadow: 0 0 0 5px rgba(255, 59, 48, 0); }
+    50% { box-shadow: 0 0 0 5px rgba(255, 59, 48, 0); }
   }
+
   @keyframes ctaGlow {
     0%, 100% { box-shadow: 0 4px 14px rgba(0, 100, 255, 0.45); }
-    50%      { box-shadow: 0 4px 22px rgba(0, 100, 255, 0.75); }
+    50% { box-shadow: 0 4px 22px rgba(0, 100, 255, 0.75); }
   }
-  .pure-carousel { position: relative; width: 100%; max-width: 100%; margin: 0 auto; }
+
+  .pure-carousel {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
   .radio-nav { display: none; }
-  .viewport { overflow-x: hidden; overflow-y: visible; border-radius: 16px; max-width: 100%; }
-  .track { display: flex; align-items: flex-start; transition: transform 0.45s cubic-bezier(.22, .68, 0, 1); }
+
+  .viewport {
+    overflow-x: hidden;
+    overflow-y: visible;
+    border-radius: 16px;
+    max-width: 100%;
+  }
+
+  .track {
+    display: flex;
+    align-items: flex-start;
+    transition: transform 0.45s cubic-bezier(.22, .68, 0, 1);
+  }
+
   .slide { padding: 0; }
-  .match-card { background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 6px 20px rgba(0, 20, 60, 0.18); display: flex; flex-direction: column; }
+
+  .match-card {
+    background: #ffffff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 6px 20px rgba(0, 20, 60, 0.18);
+    display: flex;
+    flex-direction: column;
+  }
+
   .card-header {
-    position: relative; overflow: hidden;
+    position: relative;
+    overflow: hidden;
     background: linear-gradient(135deg, #001233 0%, #002f6c 45%, #0064ff 100%);
-    padding: 10px 14px 12px; color: #ffffff;
+    padding: 10px 14px 12px;
+    color: #ffffff;
   }
+
   .card-header::before {
-    content: ''; position: absolute; top: -50%; left: 0; width: 40%; height: 200%;
-    background: linear-gradient(100deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.16) 50%, rgba(255,255,255,0) 100%);
-    animation: shimmer 3.2s ease-in-out infinite; animation-delay: 1s; pointer-events: none;
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: 0;
+    width: 40%;
+    height: 200%;
+    background: linear-gradient(
+      100deg,
+      rgba(255,255,255,0) 0%,
+      rgba(255,255,255,0.16) 50%,
+      rgba(255,255,255,0) 100%
+    );
+    animation: shimmer 3.2s ease-in-out infinite;
+    animation-delay: 1s;
+    pointer-events: none;
   }
-  .header-top-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; position: relative; z-index: 1; }
+
+  .header-top-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    position: relative;
+    z-index: 1;
+  }
+
   .header-top-row > * { min-width: 0; }
-  .league-tag { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 6px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.5px; min-width: 0; }
-  .league-tag img { width: 18px; height: 18px; flex: 0 0 auto; }
-  .league-tag .date { font-weight: 400; color: rgba(255, 255, 255, 0.75); letter-spacing: normal; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
-  .status-chip {
-    display: flex; align-items: center; gap: 5px;
-    background: rgba(255, 255, 255, 0.14); border: 1px solid rgba(255, 255, 255, 0.25);
-    border-radius: 20px; padding: 4px 10px; font-size: 0.68rem; font-weight: 600; white-space: nowrap; flex: 0 0 auto;
+
+  .league-tag {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px 6px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    min-width: 0;
   }
-  .status-chip .dot { width: 6px; height: 6px; border-radius: 50%; background: #ff3b30; animation: pulseDot 1.6s infinite; }
-  .matchup { position: relative; z-index: 1; display: flex; align-items: flex-start; justify-content: space-between; gap: 6px; margin-top: 10px; }
-  .team-block { flex: 1; text-align: center; min-width: 0; }
+
+  .league-tag img {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 auto;
+  }
+
+  .league-tag .date {
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.75);
+    letter-spacing: normal;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+  }
+
+  .status-chip {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    white-space: nowrap;
+    flex: 0 0 auto;
+  }
+
+  .status-chip .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #ff3b30;
+    animation: pulseDot 1.6s infinite;
+  }
+
+  .matchup {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 6px;
+    margin-top: 10px;
+  }
+
+  .team-block {
+    flex: 1;
+    text-align: center;
+    min-width: 0;
+  }
+
   .team-logo-ring {
-    width: clamp(44px, 13vw, 54px); height: clamp(44px, 13vw, 54px);
-    margin: 0 auto 6px; border-radius: 50%;
-    background: #ffffff; display: flex; align-items: center; justify-content: center;
+    width: clamp(44px, 13vw, 54px);
+    height: clamp(44px, 13vw, 54px);
+    margin: 0 auto 6px;
+    border-radius: 50%;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     padding: clamp(7px, 1.5vw, 9px);
   }
-  .team-block.away .team-logo-ring { box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.85), 0 0 16px 2px rgba(0, 229, 255, 0.55); }
-  .team-block.home .team-logo-ring { box-shadow: 0 0 0 3px rgba(255, 180, 0, 0.9), 0 0 16px 2px rgba(255, 180, 0, 0.5); }
-  .team-logo-ring img { max-width: 100%; max-height: 100%; object-fit: contain; }
-  .team-logo-ring.initials { font-weight: 800; font-size: 1.3rem; color: #002f6c; }
-  .team-name { font-size: clamp(0.74rem, 2.3vw, 0.86rem); font-weight: 700; line-height: 1.15; overflow-wrap: break-word; hyphens: auto; }
-  .team-side { font-size: 0.66rem; color: rgba(255, 255, 255, 0.65); margin-top: 3px; letter-spacing: 0.4px; }
-  .team-record { font-size: 0.72rem; color: rgba(255, 255, 255, 0.7); margin-top: 2px; }
+
+  .team-block.away .team-logo-ring {
+    box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.85),
+                0 0 16px 2px rgba(0, 229, 255, 0.55);
+  }
+
+  .team-block.home .team-logo-ring {
+    box-shadow: 0 0 0 3px rgba(255, 180, 0, 0.9),
+                0 0 16px 2px rgba(255, 180, 0, 0.5);
+  }
+
+  .team-logo-ring img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+
+  .team-logo-ring.initials {
+    font-weight: 800;
+    font-size: 1.3rem;
+    color: #002f6c;
+  }
+
+  .team-name {
+    font-size: clamp(0.74rem, 2.3vw, 0.86rem);
+    font-weight: 700;
+    line-height: 1.15;
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+
+  .team-side {
+    font-size: 0.66rem;
+    color: rgba(255, 255, 255, 0.65);
+    margin-top: 3px;
+    letter-spacing: 0.4px;
+  }
+
+  .team-record {
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-top: 2px;
+  }
+
   .vs-badge {
-    flex: 0 0 auto; align-self: center; margin-top: 8px;
-    background: linear-gradient(135deg, #ffb400, #ff7a00); color: #1a1200;
-    font-weight: 800; font-style: italic; font-size: 0.72rem; letter-spacing: 0.5px;
-    padding: 4px 9px; border-radius: 999px; box-shadow: 0 2px 8px rgba(255, 122, 0, 0.5);
+    flex: 0 0 auto;
+    align-self: center;
+    margin-top: 8px;
+    background: linear-gradient(135deg, #ffb400, #ff7a00);
+    color: #1a1200;
+    font-weight: 800;
+    font-style: italic;
+    font-size: 0.72rem;
+    letter-spacing: 0.5px;
+    padding: 4px 9px;
+    border-radius: 999px;
+    box-shadow: 0 2px 8px rgba(255, 122, 0, 0.5);
   }
+
   .card-body { padding: 10px 16px 10px; }
-  .info-row { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: #3c4043; padding: 2px 0; }
-  .info-row .icon { flex: 0 0 auto; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; }
-  .info-row .icon svg { width: 16px; height: 16px; }
-  .network-badge {
-    display: inline-flex; align-items: center; gap: 6px; background-color: #002f6c; color: #ffffff;
-    font-weight: bold; font-size: 0.7rem; letter-spacing: 0.5px; padding: 2px 9px; border-radius: 4px;
+
+  .info-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.82rem;
+    color: #3c4043;
+    padding: 2px 0;
   }
+
+  .info-row .icon {
+    flex: 0 0 auto;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .info-row .icon svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .network-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background-color: #002f6c;
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 0.7rem;
+    letter-spacing: 0.5px;
+    padding: 2px 9px;
+    border-radius: 4px;
+  }
+
   .cta-btn {
-    margin-top: 4px; width: 100%; border: none; border-radius: 10px; padding: 9px;
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-    font-size: 0.9rem; font-weight: 700; color: #ffffff; letter-spacing: 0.2px;
-    cursor: pointer; text-decoration: none;
+    margin-top: 4px;
+    width: 100%;
+    border: none;
+    border-radius: 10px;
+    padding: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 0.2px;
+    cursor: pointer;
+    text-decoration: none;
     background: linear-gradient(135deg, #0064ff, #00c6ff);
     animation: ctaGlow 2.4s ease-in-out infinite;
   }
-  .cta-btn svg { width: 14px; height: 14px; }
-  .powered-by { text-align: center; margin-top: 6px; font-size: 0.66rem; color: #9aa0a6; }
-  .powered-by b { color: #0064ff; }
-  .nav-bar { flex: 0 0 auto; display: flex; align-items: center; justify-content: center; gap: 16px; padding: 2px 0 2px; }
-  .arrow-slot { width: 26px; height: 26px; }
-  .nav-btn {
-    display: none; width: 26px; height: 26px; border-radius: 50%; background: #ffffff;
-    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2); align-items: center; justify-content: center; cursor: pointer;
-  }
-  .nav-btn svg { width: 15px; height: 15px; }
-  .dots { display: flex; align-items: center; gap: 5px; }
-  .dot { display: block; width: 6px; height: 6px; border-radius: 50%; background: #d0d3d8; cursor: pointer; }
 
-  /* small pause/play toggle, bottom-right, only present when autoplay is live */
+  .cta-btn svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .powered-by {
+    text-align: center;
+    margin-top: 6px;
+    font-size: 0.66rem;
+    color: #9aa0a6;
+  }
+
+  .powered-by b { color: #0064ff; }
+
+  .nav-bar {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 2px 0 2px;
+  }
+
+  .arrow-slot {
+    width: 26px;
+    height: 26px;
+  }
+
+  .nav-btn {
+    display: none;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  .nav-btn svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  .dots {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .dot {
+    display: block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #d0d3d8;
+    cursor: pointer;
+  }
+
   .autoplay-toggle {
-    position: absolute; bottom: 4px; right: 4px;
-    width: 20px; height: 20px; padding: 0;
-    border: none; border-radius: 50%;
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
     background: #ffffff;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.22);
     cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     z-index: 3;
   }
-  .autoplay-toggle:focus-visible { outline: 2px solid #0064ff; outline-offset: 1px; }
-  .autoplay-toggle svg { width: 10px; height: 10px; display: block; }
+
+  .autoplay-toggle:focus-visible {
+    outline: 2px solid #0064ff;
+    outline-offset: 1px;
+  }
+
+  .autoplay-toggle svg {
+    width: 10px;
+    height: 10px;
+    display: block;
+  }
 
   @media (prefers-reduced-motion: reduce) {
-    .card-header::before, .status-chip .dot, .cta-btn { animation: none; }
+    .card-header::before,
+    .status-chip .dot,
+    .cta-btn {
+      animation: none;
+    }
+
     .track { transition: none; }
   }
 </style>
@@ -146,17 +426,22 @@
 
   function escapeHtml(value) {
     return String(value == null ? '' : value)
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 
-  /* Only real web links, so a crafted URL can't inject a javascript: link. */
   function safeLink(url) {
     return (url && /^https?:\/\//i.test(url)) ? url : '';
   }
 
-  var NFL_LOGO_URL = 'https://a.espncdn.com/i/teamlogos/leagues/500/nfl.png';
-  var DEFAULT_LINK = 'https://www.paramountplus.com/shows/nfl-on-cbs/';
+  var NFL_LOGO_URL =
+    'https://a.espncdn.com/i/teamlogos/leagues/500/nfl.png';
+
+  var DEFAULT_LINK =
+    'https://www.paramountplus.com/shows/nfl-on-cbs/';
 
   var ICONS = {
     location: '<svg viewBox="0 0 24 24" fill="none" stroke="#5f6368" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>',
@@ -165,109 +450,225 @@
     chevronLeft: '<svg viewBox="0 0 24 24" fill="none" stroke="#0064ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>',
     chevronRight: '<svg viewBox="0 0 24 24" fill="none" stroke="#0064ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>',
     pauseSmall: '<svg viewBox="0 0 10 10" fill="#0064ff" aria-hidden="true"><rect x="2" y="1.5" width="2" height="7" rx="0.4"></rect><rect x="6" y="1.5" width="2" height="7" rx="0.4"></rect></svg>',
-    playSmall:  '<svg viewBox="0 0 10 10" fill="#0064ff" aria-hidden="true"><polygon points="2.5,1 8.5,5 2.5,9"></polygon></svg>'
+    playSmall: '<svg viewBox="0 0 10 10" fill="#0064ff" aria-hidden="true"><polygon points="2.5,1 8.5,5 2.5,9"></polygon></svg>'
   };
 
   function teamLogoHTML(team) {
     if (team.logo) {
-      return '<img src="' + escapeHtml(team.logo) + '" alt="' + escapeHtml(team.name) + ' logo">';
+      return '<img src="' +
+        escapeHtml(team.logo) +
+        '" alt="' +
+        escapeHtml(team.name) +
+        ' logo">';
     }
+
     var source = team.name || '';
-    return escapeHtml(String(source).slice(0, 2).toUpperCase());
+    return escapeHtml(
+      String(source).slice(0, 2).toUpperCase()
+    );
   }
 
   function teamBlockHTML(team, side, label) {
     return '<div class="team-block ' + side + '">' +
-      '<div class="team-logo-ring' + (team.logo ? '' : ' initials') + '">' + teamLogoHTML(team) + '</div>' +
-      '<div class="team-name">' + escapeHtml(team.name || 'TBD') + '</div>' +
+      '<div class="team-logo-ring' +
+        (team.logo ? '' : ' initials') + '">' +
+        teamLogoHTML(team) +
+      '</div>' +
+      '<div class="team-name">' +
+        escapeHtml(team.name || 'TBD') +
+      '</div>' +
       '<div class="team-side">' + label + '</div>' +
-      (team.record ? '<div class="team-record">' + escapeHtml(team.record) + '</div>' : '') +
+      (team.record
+        ? '<div class="team-record">' +
+          escapeHtml(team.record) +
+          '</div>'
+        : '') +
       '</div>';
   }
 
   function slideHTML(game) {
     var rows = '';
+
     if (game.venue) {
-      rows += '<div class="info-row"><span class="icon">' + ICONS.location + '</span>' +
-              '<span>' + escapeHtml(game.venue) + '</span></div>';
+      rows +=
+        '<div class="info-row">' +
+          '<span class="icon">' +
+            ICONS.location +
+          '</span>' +
+          '<span>' +
+            escapeHtml(game.venue) +
+          '</span>' +
+        '</div>';
     }
+
     if (game.broadcaster) {
-      rows += '<div class="info-row"><span class="icon">' + ICONS.tv + '</span>' +
-              '<span>Watch on</span><span class="network-badge">' + escapeHtml(game.broadcaster) + '</span></div>';
+      rows +=
+        '<div class="info-row">' +
+          '<span class="icon">' +
+            ICONS.tv +
+          '</span>' +
+          '<span>Watch on</span>' +
+          '<span class="network-badge">' +
+            escapeHtml(game.broadcaster) +
+          '</span>' +
+        '</div>';
     }
 
     return '<div class="slide"><div class="match-card">' +
       '<div class="card-header">' +
         '<div class="header-top-row">' +
           '<div class="league-tag">' +
-            '<img src="' + NFL_LOGO_URL + '" alt="NFL logo">' +
+            '<img src="' +
+              NFL_LOGO_URL +
+              '" alt="NFL logo">' +
             '<span>NFL</span>' +
-            (game.when ? '<span class="date">&middot; ' + escapeHtml(game.when) + '</span>' : '') +
+            (game.when
+              ? '<span class="date">&middot; ' +
+                escapeHtml(game.when) +
+                '</span>'
+              : '') +
           '</div>' +
-          '<div class="status-chip"><span class="dot"></span><span>' + escapeHtml(game.status) + '</span></div>' +
+          '<div class="status-chip">' +
+            '<span class="dot"></span>' +
+            '<span>' +
+              escapeHtml(game.status) +
+            '</span>' +
+          '</div>' +
         '</div>' +
+
         '<div class="matchup">' +
           teamBlockHTML(game.away, 'away', 'AWAY') +
           '<div class="vs-badge">AT</div>' +
           teamBlockHTML(game.home, 'home', 'HOME') +
         '</div>' +
       '</div>' +
-      '<div class="card-body">' + rows +
-        '<a class="cta-btn" href="' + escapeHtml(game.watchUrl) + '" target="_blank" rel="noopener noreferrer">' +
-          ICONS.play + ' Watch on Paramount+' +
+
+      '<div class="card-body">' +
+        rows +
+        '<a class="cta-btn" href="' +
+          escapeHtml(game.watchUrl) +
+          '" target="_blank" rel="noopener noreferrer">' +
+          ICONS.play +
+          ' Watch on Paramount+' +
         '</a>' +
-        '<div class="powered-by">Streaming live only on <b>Paramount+</b></div>' +
+        '<div class="powered-by">' +
+          'Streaming live only on <b>Paramount+</b>' +
+        '</div>' +
       '</div>' +
     '</div></div>';
   }
 
   function buildDynamicCSS(n) {
-    var css = '.track { width: calc(' + n + ' * 100%); } .slide { flex: 0 0 calc(100% / ' + n + '); } ';
+    var css =
+      '.track { width: calc(' + n + ' * 100%); } ' +
+      '.slide { flex: 0 0 calc(100% / ' + n + '); } ';
+
     for (var i = 0; i < n; i++) {
-      css += '#g' + (i + 1) + ':checked ~ .viewport .track { transform: translateX(calc(-100% / ' + n + ' * ' + i + ')); } ';
+      css +=
+        '#g' + (i + 1) +
+        ':checked ~ .viewport .track {' +
+        ' transform: translateX(calc(-100% / ' +
+        n + ' * ' + i + ')); } ';
     }
+
     if (n > 1) {
       for (var j = 0; j < n - 1; j++) {
-        css += '#g' + (j + 1) + ':checked ~ .nav-bar .to-g' + (j + 2) + '.next-btn { display: flex; } ';
-        css += '#g' + (j + 2) + ':checked ~ .nav-bar .to-g' + (j + 1) + '.prev-btn { display: flex; } ';
+        css +=
+          '#g' + (j + 1) +
+          ':checked ~ .nav-bar .to-g' +
+          (j + 2) +
+          '.next-btn { display: flex; } ';
+
+        css +=
+          '#g' + (j + 2) +
+          ':checked ~ .nav-bar .to-g' +
+          (j + 1) +
+          '.prev-btn { display: flex; } ';
       }
+
       for (var k = 0; k < n; k++) {
-        css += '#g' + (k + 1) + ':checked ~ .nav-bar .dots label[for="g' + (k + 1) + '"] { width: 18px; border-radius: 3px; background: linear-gradient(135deg, #0064ff, #00c6ff); } ';
+        css +=
+          '#g' + (k + 1) +
+          ':checked ~ .nav-bar .dots label[for="g' +
+          (k + 1) +
+          '"] { width: 18px; border-radius: 3px;' +
+          ' background: linear-gradient(135deg, #0064ff, #00c6ff); } ';
       }
     }
+
     return css;
   }
 
   function buildRadios(n, startIdx) {
     var out = '';
+
     for (var i = 0; i < n; i++) {
-      out += '<input type="radio" name="game" id="g' + (i + 1) + '" class="radio-nav"' + (i === startIdx ? ' checked' : '') + '>';
+      out +=
+        '<input type="radio" name="game" id="g' +
+        (i + 1) +
+        '" class="radio-nav"' +
+        (i === startIdx ? ' checked' : '') +
+        '>';
     }
+
     return out;
   }
 
   function buildNavBar(n) {
     if (n <= 1) return '';
-    var prevLabels = '', nextLabels = '', dots = '';
+
+    var prevLabels = '';
+    var nextLabels = '';
+    var dots = '';
+
     for (var i = 0; i < n - 1; i++) {
-      prevLabels += '<label for="g' + (i + 1) + '" class="nav-btn prev-btn to-g' + (i + 1) + '" aria-label="Previous game">' + ICONS.chevronLeft + '</label>';
-      nextLabels += '<label for="g' + (i + 2) + '" class="nav-btn next-btn to-g' + (i + 2) + '" aria-label="Next game">' + ICONS.chevronRight + '</label>';
+      prevLabels +=
+        '<label for="g' + (i + 1) +
+        '" class="nav-btn prev-btn to-g' +
+        (i + 1) +
+        '" aria-label="Previous game">' +
+        ICONS.chevronLeft +
+        '</label>';
+
+      nextLabels +=
+        '<label for="g' + (i + 2) +
+        '" class="nav-btn next-btn to-g' +
+        (i + 2) +
+        '" aria-label="Next game">' +
+        ICONS.chevronRight +
+        '</label>';
     }
+
     for (var k = 0; k < n; k++) {
-      dots += '<label for="g' + (k + 1) + '" class="dot" aria-label="Go to game ' + (k + 1) + '"></label>';
+      dots +=
+        '<label for="g' +
+        (k + 1) +
+        '" class="dot" aria-label="Go to game ' +
+        (k + 1) +
+        '"></label>';
     }
+
     return '<div class="nav-bar">' +
-      '<div class="arrow-slot">' + prevLabels + '</div>' +
-      '<div class="dots">' + dots + '</div>' +
-      '<div class="arrow-slot">' + nextLabels + '</div>' +
-      '</div>';
+      '<div class="arrow-slot">' +
+        prevLabels +
+      '</div>' +
+      '<div class="dots">' +
+        dots +
+      '</div>' +
+      '<div class="arrow-slot">' +
+        nextLabels +
+      '</div>' +
+    '</div>';
   }
 
+  // Prevent duplicate carousel rendering
   var isDuplicate = false;
+
   try {
     var key = 'nfl-card-claim:' + location.search;
     var now = Date.now();
     var claimed = sessionStorage.getItem(key);
+
     if (claimed && now - parseInt(claimed, 10) < 20000) {
       isDuplicate = true;
     } else {
@@ -277,43 +678,82 @@
 
   if (isDuplicate) {
     document.body.style.minHeight = '0';
+
     try {
       window.parent.postMessage(
-        { eventType: 'UPDATE_PARENT_WINDOW_STYLE', data: { height: '0px' } },
+        {
+          eventType: 'UPDATE_PARENT_WINDOW_STYLE',
+          data: { height: '0px' }
+        },
         '*'
       );
     } catch (e) {}
+
     return;
   }
 
-  var cardsCount = Math.min(3, Math.max(1, parseInt(qs('cards', '1'), 10) || 1));
+  // Supports up to 6 cards
+  var cardsCount = Math.min(
+    6,
+    Math.max(1, parseInt(qs('cards', '1'), 10) || 1)
+  );
 
-  /* optional deep-link to a starting card (?start=N, 1-based) */
-  var startIdx = (parseInt(qs('start', '1'), 10) || 1) - 1;
-  if (startIdx < 0 || startIdx >= cardsCount) startIdx = 0;
+  // Optional starting card
+  var startIdx =
+    (parseInt(qs('start', '1'), 10) || 1) - 1;
 
-  /* autoplay interval (ms); only honored for 2+ cards and when motion is OK */
-  var reduceMotion = window.matchMedia &&
-    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var autoplayMs = parseInt(qs('autoplay', '0'), 10) || 0;
-  if (autoplayMs && autoplayMs < 1500) autoplayMs = 1500;      /* floor so a typo can't strobe */
-  if (reduceMotion || cardsCount <= 1) autoplayMs = 0;
+  if (startIdx < 0 || startIdx >= cardsCount) {
+    startIdx = 0;
+  }
+
+  // AUTOPLAY CONFIGURATION
+  // Example: ?autoplay=5000
+  // 0 or omitted = autoplay disabled
+  // Only enabled with 2 or more cards
+
+  var autoplayMs =
+    parseInt(qs('autoplay', '0'), 10) || 0;
+
+  if (autoplayMs && autoplayMs < 1500) {
+    autoplayMs = 1500;
+  }
+
+  if (cardsCount <= 1) {
+    autoplayMs = 0;
+  }
 
   var games = [];
+
   for (var i = 1; i <= cardsCount; i++) {
     var sharedScore = qs('score_' + i, '');
 
-    var when = [qs('day_' + i, ''), qs('date_' + i, ''), qs('time_' + i, '')]
-      .filter(Boolean).join(', ');
+    var when = [
+      qs('day_' + i, ''),
+      qs('date_' + i, ''),
+      qs('time_' + i, '')
+    ].filter(Boolean).join(', ');
 
     games.push({
       when: when,
       status: qs('status_' + i, 'UPCOMING'),
       venue: qs('venue_' + i, ''),
       broadcaster: qs('network_' + i, ''),
-      watchUrl: safeLink(qs('link_' + i, '')) || safeLink(qs('watchUrl_' + i, '')) || DEFAULT_LINK,
-      away: { name: qs('team1_' + i, 'TBD'), record: qs('score1_' + i, sharedScore), logo: qs('logo1_' + i, null) },
-      home: { name: qs('team2_' + i, 'TBD'), record: qs('score2_' + i, sharedScore), logo: qs('logo2_' + i, null) }
+      watchUrl:
+        safeLink(qs('link_' + i, '')) ||
+        safeLink(qs('watchUrl_' + i, '')) ||
+        DEFAULT_LINK,
+
+      away: {
+        name: qs('team1_' + i, 'TBD'),
+        record: qs('score1_' + i, sharedScore),
+        logo: qs('logo1_' + i, null)
+      },
+
+      home: {
+        name: qs('team2_' + i, 'TBD'),
+        record: qs('score2_' + i, sharedScore),
+        logo: qs('logo2_' + i, null)
+      }
     });
   }
 
@@ -321,164 +761,317 @@
   styleTag.textContent = buildDynamicCSS(cardsCount);
   document.head.appendChild(styleTag);
 
-  /* only inject the toggle button when autoplay is actually going to run */
+  // Show pause/play button only if autoplay is enabled
   var toggleHTML = autoplayMs
-    ? '<button type="button" class="autoplay-toggle" aria-label="Pause auto-scroll" aria-pressed="false">' + ICONS.pauseSmall + '</button>'
+    ? '<button type="button" class="autoplay-toggle" ' +
+      'aria-label="Pause auto-scroll" aria-pressed="false">' +
+      ICONS.pauseSmall +
+      '</button>'
     : '';
 
   document.getElementById('carousel-root').innerHTML =
-    '<div class="pure-carousel">' + buildRadios(cardsCount, startIdx) +
-    '<div class="viewport"><div class="track">' + games.map(slideHTML).join('') + '</div></div>' +
-    buildNavBar(cardsCount) + toggleHTML + '</div>';
+    '<div class="pure-carousel">' +
+      buildRadios(cardsCount, startIdx) +
+      '<div class="viewport">' +
+        '<div class="track">' +
+          games.map(slideHTML).join('') +
+        '</div>' +
+      '</div>' +
+      buildNavBar(cardsCount) +
+      toggleHTML +
+    '</div>';
 
-  /* ---- interaction layer: autoplay + swipe + keyboard + pause toggle ---- */
+  // ==========================================================
+  // AUTOPLAY FIX
+  //
+  // Autoplay runs continuously, regardless of:
+  // - Mouse hover
+  // - Keyboard focus
+  // - Clicking within the carousel
+  // - Swiping between cards
+  //
+  // Only clicking the pause button stops autoplay.
+  // ==========================================================
+
   (function initInteractions() {
     var root = document.getElementById('carousel-root');
+
     if (!root) return;
+
     var carousel = root.querySelector('.pure-carousel');
+
     if (!carousel || cardsCount <= 1) return;
 
     function radios() {
-      return carousel.querySelectorAll('input[name="game"].radio-nav');
+      return carousel.querySelectorAll(
+        'input[name="game"].radio-nav'
+      );
     }
+
     function currentIndex() {
       var r = radios();
-      for (var i = 0; i < r.length; i++) { if (r[i].checked) return i; }
+
+      for (var i = 0; i < r.length; i++) {
+        if (r[i].checked) return i;
+      }
+
       return 0;
     }
+
     function goTo(idx) {
-      var r = radios(), n = r.length;
+      var r = radios();
+      var n = r.length;
+
       if (n <= 1) return;
+
       idx = ((idx % n) + n) % n;
-      if (!r[idx].checked) r[idx].checked = true;
-    }
-    function next() { goTo(currentIndex() + 1); }
-    function prev() { goTo(currentIndex() - 1); }
 
-    /* autoplay state */
+      if (!r[idx].checked) {
+        r[idx].checked = true;
+      }
+    }
+
+    function next() {
+      goTo(currentIndex() + 1);
+    }
+
+    function prev() {
+      goTo(currentIndex() - 1);
+    }
+
+    // AUTOPLAY STATE
     var timer = null;
-    var manuallyPaused = false;   /* click of the toggle: sticky across hover/focus */
-    var hovered = false;          /* mouse inside carousel: temporary */
-    var focused = false;          /* keyboard focus inside: temporary */
+    var manuallyPaused = false;
 
+    // Hover is used only for keyboard navigation.
+    // It no longer affects autoplay.
+    var hovered = false;
+
+    // Autoplay stops ONLY on explicit pause.
     function shouldRun() {
-      return autoplayMs > 0 && !manuallyPaused && !hovered && !focused && !document.hidden;
+      return autoplayMs > 0 && !manuallyPaused;
     }
+
     function sync() {
       if (shouldRun() && !timer) {
         timer = setInterval(next, autoplayMs);
       } else if (!shouldRun() && timer) {
-        clearInterval(timer); timer = null;
+        clearInterval(timer);
+        timer = null;
       }
     }
+
     function restart() {
       if (!autoplayMs) return;
-      if (timer) { clearInterval(timer); timer = null; }
+
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+      }
+
       sync();
     }
 
-    carousel.addEventListener('mouseenter', function () { hovered = true;  sync(); });
-    carousel.addEventListener('mouseleave', function () { hovered = false; sync(); });
+    // Hover tracking for keyboard navigation only.
+    // No timer interruption.
+    carousel.addEventListener('mouseenter', function () {
+      hovered = true;
+    });
 
+    carousel.addEventListener('mouseleave', function () {
+      hovered = false;
+    });
+
+    // Start autoplay immediately
     if (autoplayMs) {
-      carousel.addEventListener('focusin',  function () { focused = true;  sync(); });
-      carousel.addEventListener('focusout', function () {
-        if (!carousel.contains(document.activeElement)) { focused = false; sync(); }
-      });
-      document.addEventListener('visibilitychange', sync);
       sync();
     }
 
-    /* pause/play toggle button */
-    var toggleBtn = carousel.querySelector('.autoplay-toggle');
+    // PLAY / PAUSE BUTTON
+    var toggleBtn =
+      carousel.querySelector('.autoplay-toggle');
+
     if (toggleBtn && autoplayMs) {
       toggleBtn.addEventListener('click', function (e) {
         e.stopPropagation();
+
         manuallyPaused = !manuallyPaused;
-        toggleBtn.innerHTML = manuallyPaused ? ICONS.playSmall : ICONS.pauseSmall;
+
+        toggleBtn.innerHTML =
+          manuallyPaused
+            ? ICONS.playSmall
+            : ICONS.pauseSmall;
+
         toggleBtn.setAttribute(
           'aria-label',
-          manuallyPaused ? 'Resume auto-scroll' : 'Pause auto-scroll'
+          manuallyPaused
+            ? 'Resume auto-scroll'
+            : 'Pause auto-scroll'
         );
-        toggleBtn.setAttribute('aria-pressed', manuallyPaused ? 'true' : 'false');
+
+        toggleBtn.setAttribute(
+          'aria-pressed',
+          manuallyPaused ? 'true' : 'false'
+        );
+
         sync();
       });
     }
 
-    /* touch-drag / swipe */
+    // TOUCH / SWIPE NAVIGATION
     var viewport = carousel.querySelector('.viewport');
-    var sx = 0, sy = 0, tracking = false;
+
+    var sx = 0;
+    var sy = 0;
+    var tracking = false;
+
     var SWIPE_MIN = 40;
 
     if (viewport) {
-      viewport.addEventListener('touchstart', function (e) {
-        if (!e.touches || e.touches.length !== 1) { tracking = false; return; }
-        sx = e.touches[0].clientX;
-        sy = e.touches[0].clientY;
-        tracking = true;
-        hovered = true; sync();
-      }, { passive: true });
-
-      viewport.addEventListener('touchend', function (e) {
-        if (!tracking) return;
-        tracking = false;
-        var t = e.changedTouches && e.changedTouches[0];
-        if (t) {
-          var dx = t.clientX - sx, dy = t.clientY - sy;
-          if (Math.abs(dx) > SWIPE_MIN && Math.abs(dx) > Math.abs(dy)) {
-            if (dx < 0) next(); else prev();
+      viewport.addEventListener(
+        'touchstart',
+        function (e) {
+          if (!e.touches || e.touches.length !== 1) {
+            tracking = false;
+            return;
           }
-        }
-        hovered = false; restart();
-      }, { passive: true });
 
-      viewport.addEventListener('touchcancel', function () {
-        tracking = false; hovered = false; sync();
-      }, { passive: true });
+          sx = e.touches[0].clientX;
+          sy = e.touches[0].clientY;
+          tracking = true;
+          hovered = true;
+        },
+        { passive: true }
+      );
+
+      viewport.addEventListener(
+        'touchend',
+        function (e) {
+          if (!tracking) return;
+
+          tracking = false;
+
+          var t =
+            e.changedTouches &&
+            e.changedTouches[0];
+
+          if (t) {
+            var dx = t.clientX - sx;
+            var dy = t.clientY - sy;
+
+            if (
+              Math.abs(dx) > SWIPE_MIN &&
+              Math.abs(dx) > Math.abs(dy)
+            ) {
+              if (dx < 0) {
+                next();
+              } else {
+                prev();
+              }
+            }
+          }
+
+          hovered = false;
+          restart();
+        },
+        { passive: true }
+      );
+
+      viewport.addEventListener(
+        'touchcancel',
+        function () {
+          tracking = false;
+          hovered = false;
+        },
+        { passive: true }
+      );
     }
 
-    /* keyboard (left / right), scoped so it never hijacks the page */
+    // KEYBOARD NAVIGATION
     document.addEventListener('keydown', function (e) {
       var k = e.key;
-      if (k !== 'ArrowLeft' && k !== 'ArrowRight') return;
-      var within = hovered ||
-        (document.activeElement && carousel.contains(document.activeElement));
+
+      if (k !== 'ArrowLeft' && k !== 'ArrowRight') {
+        return;
+      }
+
+      var within =
+        hovered ||
+        (
+          document.activeElement &&
+          carousel.contains(document.activeElement)
+        );
+
       if (!within) return;
-      if (k === 'ArrowRight') next(); else prev();
+
+      if (k === 'ArrowRight') {
+        next();
+      } else {
+        prev();
+      }
+
       restart();
       e.preventDefault();
     });
   })();
 
+  // ==========================================================
+  // EMBEDDED CHAT HEIGHT HANDLING
+  // ==========================================================
+
   var lastSent = 0;
+
   function postHeight() {
     var root = document.getElementById('carousel-root');
+
     if (!root) return;
-    var h = Math.ceil(root.getBoundingClientRect().height);
-    if (!h || Math.abs(h - lastSent) < 2) return;
+
+    var h = Math.ceil(
+      root.getBoundingClientRect().height
+    );
+
+    if (!h || Math.abs(h - lastSent) < 2) {
+      return;
+    }
+
     lastSent = h;
+
     try {
       window.parent.postMessage(
-        { eventType: 'UPDATE_PARENT_WINDOW_STYLE', data: { height: h + 'px' } },
+        {
+          eventType: 'UPDATE_PARENT_WINDOW_STYLE',
+          data: { height: h + 'px' }
+        },
         '*'
       );
     } catch (e) {}
   }
 
   try {
-    window.parent.postMessage({ eventType: 'DOCUMENT_LOADED', data: {} }, '*');
+    window.parent.postMessage(
+      {
+        eventType: 'DOCUMENT_LOADED',
+        data: {}
+      },
+      '*'
+    );
   } catch (e) {}
 
   postHeight();
+
   window.addEventListener('load', postHeight);
 
   if (window.ResizeObserver) {
-    new ResizeObserver(postHeight).observe(document.getElementById('carousel-root'));
+    new ResizeObserver(postHeight).observe(
+      document.getElementById('carousel-root')
+    );
   }
+
   setTimeout(postHeight, 150);
   setTimeout(postHeight, 400);
   setTimeout(postHeight, 900);
   setTimeout(postHeight, 1800);
+
 })();
 </script>
 
