@@ -5,8 +5,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NFL on Paramount+ Carousel</title>
+
 <style>
-  * { box-sizing: border-box; }
+  * {
+    box-sizing: border-box;
+  }
 
   html, body {
     margin: 0;
@@ -17,45 +20,27 @@
     font-family: Arial, 'Segoe UI', Roboto, Helvetica, sans-serif;
   }
 
-  #carousel-root { width: 100%; overflow: hidden; }
-  .pure-carousel { display: flex; flex-direction: column; }
-  .viewport { flex: 1 1 auto; min-height: 0; }
-  .track { height: 100%; }
-  .slide { height: 100%; }
-  .match-card { max-height: 100%; }
-  .card-body { flex: 1 1 auto; min-height: 0; }
-  .card-body {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 6px;
-  }
-
-  @keyframes shimmer {
-    0% { transform: translateX(-60%) rotate(8deg); }
-    100% { transform: translateX(160%) rotate(8deg); }
-  }
-
-  @keyframes pulseDot {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.55); }
-    50% { box-shadow: 0 0 0 5px rgba(255, 59, 48, 0); }
-  }
-
-  @keyframes ctaGlow {
-    0%, 100% { box-shadow: 0 4px 14px rgba(0, 100, 255, 0.45); }
-    50% { box-shadow: 0 4px 22px rgba(0, 100, 255, 0.75); }
+  #carousel-root {
+    width: 100%;
+    overflow: hidden;
   }
 
   .pure-carousel {
+    display: flex;
+    flex-direction: column;
     position: relative;
     width: 100%;
     max-width: 100%;
     margin: 0 auto;
   }
 
-  .radio-nav { display: none; }
+  .radio-nav {
+    display: none;
+  }
 
   .viewport {
+    flex: 1 1 auto;
+    min-height: 0;
     overflow-x: hidden;
     overflow-y: visible;
     border-radius: 16px;
@@ -65,10 +50,14 @@
   .track {
     display: flex;
     align-items: flex-start;
+    height: 100%;
     transition: transform 0.45s cubic-bezier(.22, .68, 0, 1);
   }
 
-  .slide { padding: 0; }
+  .slide {
+    height: 100%;
+    padding: 0;
+  }
 
   .match-card {
     background: #ffffff;
@@ -77,12 +66,55 @@
     box-shadow: 0 6px 20px rgba(0, 20, 60, 0.18);
     display: flex;
     flex-direction: column;
+    max-height: 100%;
+  }
+
+  .card-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 16px;
+  }
+
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-60%) rotate(8deg);
+    }
+    100% {
+      transform: translateX(160%) rotate(8deg);
+    }
+  }
+
+  @keyframes pulseDot {
+    0%, 100% {
+      box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.55);
+    }
+    50% {
+      box-shadow: 0 0 0 5px rgba(255, 59, 48, 0);
+    }
+  }
+
+  @keyframes ctaGlow {
+    0%, 100% {
+      box-shadow: 0 4px 14px rgba(0, 100, 255, 0.45);
+    }
+    50% {
+      box-shadow: 0 4px 22px rgba(0, 100, 255, 0.75);
+    }
   }
 
   .card-header {
     position: relative;
     overflow: hidden;
-    background: linear-gradient(135deg, #001233 0%, #002f6c 45%, #0064ff 100%);
+    background: linear-gradient(
+      135deg,
+      #001233 0%,
+      #002f6c 45%,
+      #0064ff 100%
+    );
     padding: 10px 14px 12px;
     color: #ffffff;
   }
@@ -114,7 +146,9 @@
     z-index: 1;
   }
 
-  .header-top-row > * { min-width: 0; }
+  .header-top-row > * {
+    min-width: 0;
+  }
 
   .league-tag {
     display: flex;
@@ -194,13 +228,15 @@
   }
 
   .team-block.away .team-logo-ring {
-    box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.85),
-                0 0 16px 2px rgba(0, 229, 255, 0.55);
+    box-shadow:
+      0 0 0 3px rgba(0, 229, 255, 0.85),
+      0 0 16px 2px rgba(0, 229, 255, 0.55);
   }
 
   .team-block.home .team-logo-ring {
-    box-shadow: 0 0 0 3px rgba(255, 180, 0, 0.9),
-                0 0 16px 2px rgba(255, 180, 0, 0.5);
+    box-shadow:
+      0 0 0 3px rgba(255, 180, 0, 0.9),
+      0 0 16px 2px rgba(255, 180, 0, 0.5);
   }
 
   .team-logo-ring img {
@@ -250,8 +286,6 @@
     border-radius: 999px;
     box-shadow: 0 2px 8px rgba(255, 122, 0, 0.5);
   }
-
-  .card-body { padding: 10px 16px 10px; }
 
   .info-row {
     display: flex;
@@ -321,7 +355,9 @@
     color: #9aa0a6;
   }
 
-  .powered-by b { color: #0064ff; }
+  .powered-by b {
+    color: #0064ff;
+  }
 
   .nav-bar {
     flex: 0 0 auto;
@@ -329,7 +365,7 @@
     align-items: center;
     justify-content: center;
     gap: 16px;
-    padding: 2px 0 2px;
+    padding: 2px 0;
   }
 
   .arrow-slot {
@@ -405,10 +441,13 @@
       animation: none;
     }
 
-    .track { transition: none; }
+    .track {
+      transition: none;
+    }
   }
 </style>
 </head>
+
 <body>
 
 <div id="carousel-root"></div>
@@ -463,9 +502,7 @@
     }
 
     var source = team.name || '';
-    return escapeHtml(
-      String(source).slice(0, 2).toUpperCase()
-    );
+    return escapeHtml(String(source).slice(0, 2).toUpperCase());
   }
 
   function teamBlockHTML(team, side, label) {
@@ -490,27 +527,19 @@
     var rows = '';
 
     if (game.venue) {
-      rows +=
-        '<div class="info-row">' +
-          '<span class="icon">' +
-            ICONS.location +
-          '</span>' +
-          '<span>' +
-            escapeHtml(game.venue) +
-          '</span>' +
+      rows += '<div class="info-row">' +
+        '<span class="icon">' + ICONS.location + '</span>' +
+        '<span>' + escapeHtml(game.venue) + '</span>' +
         '</div>';
     }
 
     if (game.broadcaster) {
-      rows +=
-        '<div class="info-row">' +
-          '<span class="icon">' +
-            ICONS.tv +
-          '</span>' +
-          '<span>Watch on</span>' +
-          '<span class="network-badge">' +
-            escapeHtml(game.broadcaster) +
-          '</span>' +
+      rows += '<div class="info-row">' +
+        '<span class="icon">' + ICONS.tv + '</span>' +
+        '<span>Watch on</span>' +
+        '<span class="network-badge">' +
+          escapeHtml(game.broadcaster) +
+        '</span>' +
         '</div>';
     }
 
@@ -518,9 +547,7 @@
       '<div class="card-header">' +
         '<div class="header-top-row">' +
           '<div class="league-tag">' +
-            '<img src="' +
-              NFL_LOGO_URL +
-              '" alt="NFL logo">' +
+            '<img src="' + NFL_LOGO_URL + '" alt="NFL logo">' +
             '<span>NFL</span>' +
             (game.when
               ? '<span class="date">&middot; ' +
@@ -530,9 +557,7 @@
           '</div>' +
           '<div class="status-chip">' +
             '<span class="dot"></span>' +
-            '<span>' +
-              escapeHtml(game.status) +
-            '</span>' +
+            '<span>' + escapeHtml(game.status) + '</span>' +
           '</div>' +
         '</div>' +
 
@@ -557,6 +582,10 @@
       '</div>' +
     '</div></div>';
   }
+
+  // =====================================================
+  // DYNAMIC CAROUSEL CSS
+  // =====================================================
 
   function buildDynamicCSS(n) {
     var css =
@@ -623,7 +652,8 @@
 
     for (var i = 0; i < n - 1; i++) {
       prevLabels +=
-        '<label for="g' + (i + 1) +
+        '<label for="g' +
+        (i + 1) +
         '" class="nav-btn prev-btn to-g' +
         (i + 1) +
         '" aria-label="Previous game">' +
@@ -631,7 +661,8 @@
         '</label>';
 
       nextLabels +=
-        '<label for="g' + (i + 2) +
+        '<label for="g' +
+        (i + 2) +
         '" class="nav-btn next-btn to-g' +
         (i + 2) +
         '" aria-label="Next game">' +
@@ -649,19 +680,19 @@
     }
 
     return '<div class="nav-bar">' +
-      '<div class="arrow-slot">' +
-        prevLabels +
-      '</div>' +
-      '<div class="dots">' +
-        dots +
-      '</div>' +
-      '<div class="arrow-slot">' +
-        nextLabels +
-      '</div>' +
+      '<div class="arrow-slot">' + prevLabels + '</div>' +
+      '<div class="dots">' + dots + '</div>' +
+      '<div class="arrow-slot">' + nextLabels + '</div>' +
     '</div>';
   }
 
-  // Prevent duplicate carousel rendering
+  // =====================================================
+  // DUPLICATE RENDER PROTECTION
+  //
+  // Prevents the same URL from rendering again within
+  // 20 seconds in the same browser tab session.
+  // =====================================================
+
   var isDuplicate = false;
 
   try {
@@ -669,12 +700,17 @@
     var now = Date.now();
     var claimed = sessionStorage.getItem(key);
 
-    if (claimed && now - parseInt(claimed, 10) < 20000) {
+    if (
+      claimed &&
+      now - parseInt(claimed, 10) < 20000
+    ) {
       isDuplicate = true;
     } else {
       sessionStorage.setItem(key, String(now));
     }
-  } catch (e) {}
+  } catch (e) {
+    // Continue normally if sessionStorage is unavailable.
+  }
 
   if (isDuplicate) {
     document.body.style.minHeight = '0';
@@ -692,13 +728,15 @@
     return;
   }
 
-  // Supports up to 6 cards
+  // =====================================================
+  // CARD COUNT: SUPPORT UP TO 6 CARDS
+  // =====================================================
+
   var cardsCount = Math.min(
     6,
     Math.max(1, parseInt(qs('cards', '1'), 10) || 1)
   );
 
-  // Optional starting card
   var startIdx =
     (parseInt(qs('start', '1'), 10) || 1) - 1;
 
@@ -706,21 +744,29 @@
     startIdx = 0;
   }
 
+  // =====================================================
   // AUTOPLAY CONFIGURATION
-  // Example: ?autoplay=5000
-  // 0 or omitted = autoplay disabled
-  // Only enabled with 2 or more cards
+  //
+  // ?autoplay=5000 => advance every 5 seconds
+  // ?autoplay=0    => autoplay disabled
+  //
+  // Autoplay requires at least 2 cards.
+  // =====================================================
 
   var autoplayMs =
     parseInt(qs('autoplay', '0'), 10) || 0;
 
-  if (autoplayMs && autoplayMs < 1500) {
+  if (autoplayMs > 0 && autoplayMs < 1500) {
     autoplayMs = 1500;
   }
 
   if (cardsCount <= 1) {
     autoplayMs = 0;
   }
+
+  // =====================================================
+  // BUILD GAME DATA
+  // =====================================================
 
   var games = [];
 
@@ -761,8 +807,7 @@
   styleTag.textContent = buildDynamicCSS(cardsCount);
   document.head.appendChild(styleTag);
 
-  // Show pause/play button only if autoplay is enabled
-  var toggleHTML = autoplayMs
+  var toggleHTML = autoplayMs > 0
     ? '<button type="button" class="autoplay-toggle" ' +
       'aria-label="Pause auto-scroll" aria-pressed="false">' +
       ICONS.pauseSmall +
@@ -781,17 +826,9 @@
       toggleHTML +
     '</div>';
 
-  // ==========================================================
-  // AUTOPLAY FIX
-  //
-  // Autoplay runs continuously, regardless of:
-  // - Mouse hover
-  // - Keyboard focus
-  // - Clicking within the carousel
-  // - Swiping between cards
-  //
-  // Only clicking the pause button stops autoplay.
-  // ==========================================================
+  // =====================================================
+  // INTERACTIONS + CONTINUOUS AUTOPLAY + CORRECT LOOPING
+  // =====================================================
 
   (function initInteractions() {
     var root = document.getElementById('carousel-root');
@@ -801,6 +838,8 @@
     var carousel = root.querySelector('.pure-carousel');
 
     if (!carousel || cardsCount <= 1) return;
+
+    var track = carousel.querySelector('.track');
 
     function radios() {
       return carousel.querySelectorAll(
@@ -818,16 +857,47 @@
       return 0;
     }
 
+    // =================================================
+    // FIX: CORRECT CAROUSEL LOOPING
+    //
+    // Normal transitions:
+    // 1 -> 2 -> 3
+    //
+    // At the last card:
+    // 3 -> 1 (instant reset)
+    //
+    // Prevents visually scrolling backward through card 2.
+    // =================================================
+
     function goTo(idx) {
       var r = radios();
       var n = r.length;
 
       if (n <= 1) return;
 
+      var isWrapping = idx >= n || idx < 0;
+
       idx = ((idx % n) + n) % n;
+
+      if (isWrapping && track) {
+        // Disable transition for the wrap-around.
+        track.style.transition = 'none';
+      }
 
       if (!r[idx].checked) {
         r[idx].checked = true;
+      }
+
+      if (isWrapping && track) {
+        // Force the browser to apply the new position
+        // before restoring smooth animations.
+        void track.offsetWidth;
+
+        requestAnimationFrame(function () {
+          requestAnimationFrame(function () {
+            track.style.transition = '';
+          });
+        });
       }
     }
 
@@ -839,15 +909,23 @@
       goTo(currentIndex() - 1);
     }
 
+    // =================================================
     // AUTOPLAY STATE
+    //
+    // Autoplay is NOT stopped by:
+    // - Hovering
+    // - Keyboard focus
+    // - Clicking elsewhere in the carousel
+    //
+    // Only explicit Pause stops it.
+    // =================================================
+
     var timer = null;
     var manuallyPaused = false;
 
-    // Hover is used only for keyboard navigation.
-    // It no longer affects autoplay.
+    // Used only for keyboard interaction.
     var hovered = false;
 
-    // Autoplay stops ONLY on explicit pause.
     function shouldRun() {
       return autoplayMs > 0 && !manuallyPaused;
     }
@@ -873,7 +951,8 @@
     }
 
     // Hover tracking for keyboard navigation only.
-    // No timer interruption.
+    // Hover does NOT stop autoplay.
+
     carousel.addEventListener('mouseenter', function () {
       hovered = true;
     });
@@ -882,25 +961,27 @@
       hovered = false;
     });
 
-    // Start autoplay immediately
-    if (autoplayMs) {
+    // Start autoplay automatically.
+    if (autoplayMs > 0) {
       sync();
     }
 
+    // =================================================
     // PLAY / PAUSE BUTTON
+    // =================================================
+
     var toggleBtn =
       carousel.querySelector('.autoplay-toggle');
 
-    if (toggleBtn && autoplayMs) {
+    if (toggleBtn && autoplayMs > 0) {
       toggleBtn.addEventListener('click', function (e) {
         e.stopPropagation();
 
         manuallyPaused = !manuallyPaused;
 
-        toggleBtn.innerHTML =
-          manuallyPaused
-            ? ICONS.playSmall
-            : ICONS.pauseSmall;
+        toggleBtn.innerHTML = manuallyPaused
+          ? ICONS.playSmall
+          : ICONS.pauseSmall;
 
         toggleBtn.setAttribute(
           'aria-label',
@@ -918,7 +999,10 @@
       });
     }
 
+    // =================================================
     // TOUCH / SWIPE NAVIGATION
+    // =================================================
+
     var viewport = carousel.querySelector('.viewport');
 
     var sx = 0;
@@ -938,6 +1022,7 @@
 
           sx = e.touches[0].clientX;
           sy = e.touches[0].clientY;
+
           tracking = true;
           hovered = true;
         },
@@ -972,6 +1057,9 @@
           }
 
           hovered = false;
+
+          // Restart interval without overriding
+          // the explicit paused state.
           restart();
         },
         { passive: true }
@@ -987,7 +1075,10 @@
       );
     }
 
+    // =================================================
     // KEYBOARD NAVIGATION
+    // =================================================
+
     document.addEventListener('keydown', function (e) {
       var k = e.key;
 
@@ -1013,11 +1104,12 @@
       restart();
       e.preventDefault();
     });
+
   })();
 
-  // ==========================================================
-  // EMBEDDED CHAT HEIGHT HANDLING
-  // ==========================================================
+  // =====================================================
+  // NETOMI EMBEDDED CHAT HEIGHT HANDLING
+  // =====================================================
 
   var lastSent = 0;
 
